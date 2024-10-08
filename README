@@ -1,0 +1,17 @@
+# Startup Simulator
+
+Startup Simulator is a game where you can simulate the growth of your startup. 
+You can choose from a variety of industries, and then you can choose from a variety of actions to take. 
+The game will then simulate the growth of your startup, and you can watch as your startup grows and evolves.
+
+## Technologies Used
+
+Python/Django base, written using Cursor with Claude 3.5 Sonnet.
+
+## How to Play
+
+1. Clone the repository
+2. Run `pip install -r requirements.txt`
+3. Run `python manage.py runserver`
+4. Go to `http://localhost:8000` in your web browser
+
