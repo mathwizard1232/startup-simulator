@@ -167,3 +167,20 @@ Improvements for MVP/future versions:
   - Explore gameplay options after losing control (e.g., starting a new company, attempting to regain control)
 - Add industry-specific win/lose conditions
 - Implement long-term goals and achievements beyond initial success
+
+
+## Testing notes
+
+"""
+Notes for MVP/final version:
+1. Testing should be optional:
+   - Releasing untested code will save time but likely lose customers due to bugs.
+   - Thorough testing improves code quality and customer satisfaction but is time-consuming and costly.
+2. Implement different levels of testing:
+   - Quick testing: Faster, less thorough, may miss some bugs.
+   - Standard testing: Balanced approach.
+   - Thorough testing: Time-consuming, catches most bugs, improves code quality.
+3. Customer satisfaction should be affected by bug frequency and severity.
+4. Time-to-market vs. code quality trade-off should be a key strategic decision for players.
+5. Different employee types could have varying effectiveness in coding, testing, and bug fixing.
+"""

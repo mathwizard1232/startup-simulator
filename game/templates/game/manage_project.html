@@ -26,12 +26,6 @@
         <li>No bugs detected yet.</li>
     {% endfor %}
     </ul>
-
-    <form method="post">
-        {% csrf_token %}
-        <!-- Add project management actions here -->
-        <button type="submit">Update Project</button>
-    </form>
     <a href="{% url 'game_loop' %}">Back to Game</a>
 </body>
 </html>

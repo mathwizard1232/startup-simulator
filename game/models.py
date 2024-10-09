@@ -24,6 +24,7 @@ class Company(models.Model):
         ('LOST', 'Lost'),
     ]
     game_status = models.CharField(max_length=10, choices=GAME_STATUS_CHOICES, default='ONGOING')
+    revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def __str__(self):
         return self.name
@@ -45,7 +46,26 @@ class Project(models.Model):
     description = models.TextField()
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='projects')
     complexity = models.IntegerField(default=1)
-    
+
+    @property
+    def state(self):
+        feature_states = set(self.features.values_list('state', flat=True))
+        
+        if not feature_states or feature_states == {'NOT_STARTED'}:
+            return 'NOT_STARTED'
+        elif 'IN_PROGRESS' in feature_states:
+            return 'IN_PROGRESS'
+        elif 'TESTING' in feature_states and 'COMPLETED' in feature_states and len(feature_states) == 2:
+            return 'TESTING'
+        elif feature_states == {'COMPLETED'}:
+            return 'COMPLETED'
+        else:
+            return 'IN_PROGRESS'  # Default to IN_PROGRESS for any other combination
+
+    @property
+    def completed(self):
+        return self.state == 'COMPLETED'
+
     def generate_industry_specific_features(self):
         if self.company.industry == 'FINTECH':
             Feature.objects.create(name="Security Implementation", project=self)
@@ -59,14 +79,16 @@ class Project(models.Model):
         return self.name
 
 class Feature(models.Model):
-    name = models.CharField(max_length=100)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='features')
-    STATE_CHOICES = [
+    FEATURE_STATE_CHOICES = [
         ('NOT_STARTED', 'Not Started'),
         ('IN_PROGRESS', 'In Progress'),
+        ('TESTING', 'Testing'),
         ('COMPLETED', 'Completed'),
     ]
-    state = models.CharField(max_length=20, choices=STATE_CHOICES, default='NOT_STARTED')
+    
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='features')
+    name = models.CharField(max_length=100)
+    state = models.CharField(max_length=20, choices=FEATURE_STATE_CHOICES, default='NOT_STARTED')
 
     def __str__(self):
         return f"{self.name} ({self.project.name})"

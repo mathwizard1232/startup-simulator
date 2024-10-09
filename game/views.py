@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.views import View
 from .models import Company, Employee, Project, Feature, Bug
 import random
+from decimal import Decimal
 
 class StartGameView(View):
     def get(self, request):
@@ -55,6 +56,9 @@ class GameLoopView(View):
         company_id = request.session.get('company_id')
         company = Company.objects.get(id=company_id)
 
+        # Process turn actions
+        self.process_turn(company)
+
         # Check win condition
         if company.funds >= 1000000:  # $1 million
             company.game_status = 'WON'
@@ -71,6 +75,61 @@ class GameLoopView(View):
         # For now, just increment the turn counter
         request.session['turn'] = request.session.get('turn', 1) + 1
         return redirect('game_loop')
+
+    def process_turn(self, company):
+        # Deduct employee salaries
+        total_salary = sum(employee.salary for employee in company.employees.all())
+        company.funds -= Decimal(total_salary) / Decimal('52')  # Assuming weekly turns and annual salary
+
+        # Process projects
+        for project in company.projects.all():
+            self.process_project(project)
+
+        # Generate revenue from completed projects
+        completed_projects = [project for project in company.projects.all() if project.state == 'COMPLETED']
+        company.revenue += Decimal('10000') * Decimal(len(completed_projects))
+
+        # Update company funds with revenue
+        company.funds += company.revenue
+        company.save()
+
+    def process_project(self, project):
+        employees = project.employees.all()
+        if not employees:
+            return  # No progress if no employees assigned
+
+        total_skill = sum(employee.skill_level for employee in employees)
+        progress_chance = min(total_skill * 5, 100)  # Cap at 100%
+
+        for feature in project.features.exclude(state='COMPLETED'):
+            if random.randint(1, 100) <= progress_chance:
+                if feature.state == 'NOT_STARTED':
+                    feature.state = 'IN_PROGRESS'
+                    # Chance to introduce bugs during development
+                    if random.randint(1, 100) <= 30:  # 30% chance of creating a bug
+                        Bug.objects.create(feature=feature, description="Hidden bug", detected=False)
+                elif feature.state == 'IN_PROGRESS':
+                    feature.state = 'TESTING'
+                elif feature.state == 'TESTING':
+                    # Chance to detect existing bugs
+                    for bug in feature.bugs.filter(detected=False):
+                        if random.randint(1, 100) <= progress_chance:
+                            bug.detected = True
+                            bug.save()
+                    
+                    if not feature.bugs.filter(detected=True).exists():
+                        feature.state = 'COMPLETED'
+                feature.save()
+
+        # Fix detected bugs
+        for bug in Bug.objects.filter(feature__project=project, detected=True):
+            if random.randint(1, 100) <= progress_chance:
+                # Chance to introduce new bug while fixing
+                if random.randint(1, 100) <= 10:  # 10% chance of creating a new bug
+                    Bug.objects.create(feature=bug.feature, description="Bug introduced during fix", detected=False)
+                bug.delete()
+
+        project.save()
 
 class HireEmployeeView(View):
     def get(self, request):

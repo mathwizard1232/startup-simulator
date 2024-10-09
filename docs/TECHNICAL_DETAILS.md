@@ -67,4 +67,8 @@
 - Web-based application
 - Consider standalone version for future development
 
-This document captures the technical details and considerations for the Startup Simulator project, providing a reference for development decisions and future planning.
+## Decimal Usage
+- Always use `decimal.Decimal` for financial calculations to avoid floating-point precision issues.
+- Import Decimal at the top of files where it's used: `from decimal import Decimal`
+- Convert integer or string values to Decimal when performing calculations: `Decimal('10000')` or `Decimal(integer_value)`
+- Avoid using float values in financial calculations.
