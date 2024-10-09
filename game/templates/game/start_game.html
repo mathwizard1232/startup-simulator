@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Start New Game - Startup Simulator</title>
+</head>
+<body>
+    <h1>Start a New Game</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="company_name">Company Name:</label>
+        <input type="text" id="company_name" name="company_name" required>
+        <button type="submit">Start Game</button>
+    </form>
+</body>
+</html>

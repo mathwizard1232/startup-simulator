@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Startup Simulator - Turn {{ turn }}</title>
+</head>
+<body>
+    <h1>{{ company.name }} - Turn {{ turn }}</h1>
+    <p>Funds: ${{ company.funds }}</p>
+
+    <h2>Employees</h2>
+    <ul>
+    {% for employee in employees %}
+        <li>{{ employee.name }} - Skill: {{ employee.skill_level }}</li>
+    {% empty %}
+        <li>No employees yet.</li>
+    {% endfor %}
+    </ul>
+
+    <h2>Projects</h2>
+    <ul>
+    {% for project in projects %}
+        <li>{{ project.name }} - {{ project.description }}</li>
+    {% empty %}
+        <li>No projects yet.</li>
+    {% endfor %}
+    </ul>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">End Turn</button>
+    </form>
+</body>
+</html>
