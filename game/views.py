@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import Company, Employee, Project
+from .models import Company, Employee, Project, Feature, Bug
 import random
 
 class StartGameView(View):
@@ -82,3 +82,69 @@ class HireEmployeeView(View):
         company.save()
 
         return redirect('game_loop')
+
+class CreateProjectView(View):
+    def get(self, request):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        return render(request, 'game/create_project.html', {'company': company})
+
+    def post(self, request):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        project_name = request.POST.get('project_name')
+        project_description = request.POST.get('project_description')
+
+        project = Project.objects.create(
+            name=project_name,
+            description=project_description,
+            company=company
+        )
+
+        # Create initial features
+        feature_names = ['Login System', 'User Profile', 'Main Functionality', 'Admin Panel']
+        for name in feature_names:
+            Feature.objects.create(name=name, project=project)
+
+        # Generate hidden bugs
+        self.generate_hidden_bugs(project)
+
+        return redirect('game_loop')
+
+    def generate_hidden_bugs(self, project):
+        num_bugs = random.randint(2, 5)
+        for _ in range(num_bugs):
+            Bug.objects.create(
+                description=f"Hidden bug in {project.name}",
+                project=project,
+                state='UNDETECTED'
+            )
+
+class ManageProjectView(View):
+    def get(self, request, project_id):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        project = Project.objects.get(id=project_id, company=company)
+        features = project.features.all()
+        detected_bugs = project.bugs.filter(state='DETECTED')
+
+        return render(request, 'game/manage_project.html', {
+            'company': company,
+            'project': project,
+            'features': features,
+            'detected_bugs': detected_bugs
+        })
+
+    def post(self, request, project_id):
+        # Handle project management actions here
+        # For now, we'll just redirect back to the project management page
+        return redirect('manage_project', project_id=project_id)

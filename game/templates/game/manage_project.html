@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Project - Startup Simulator</title>
+</head>
+<body>
+    <h1>Manage Project: {{ project.name }}</h1>
+    <p>Company Funds: ${{ company.funds }}</p>
+    <h2>Project Description:</h2>
+    <p>{{ project.description }}</p>
+    
+    <h2>Features:</h2>
+    <ul>
+    {% for feature in features %}
+        <li>{{ feature.name }} - Status: {{ feature.get_state_display }}</li>
+    {% endfor %}
+    </ul>
+
+    <h2>Detected Bugs:</h2>
+    <ul>
+    {% for bug in detected_bugs %}
+        <li>{{ bug.description }}</li>
+    {% empty %}
+        <li>No bugs detected yet.</li>
+    {% endfor %}
+    </ul>
+
+    <form method="post">
+        {% csrf_token %}
+        <!-- Add project management actions here -->
+        <button type="submit">Update Project</button>
+    </form>
+    <a href="{% url 'game_loop' %}">Back to Game</a>
+</body>
+</html>

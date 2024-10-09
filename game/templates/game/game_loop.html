@@ -19,13 +19,14 @@
     <h2>Projects</h2>
     <ul>
     {% for project in projects %}
-        <li>{{ project.name }} - {{ project.description }}</li>
+        <li>{{ project.name }} - {{ project.description }} <a href="{% url 'manage_project' project.id %}">Manage</a></li>
     {% empty %}
         <li>No projects yet.</li>
     {% endfor %}
     </ul>
 
-    <a href="{% url 'hire_employee' %}">Hire Employee</a>
+    <a href="{% url 'hire_employee' %}">Hire New Employee</a>
+    <a href="{% url 'create_project' %}">Create New Project</a>
 
     <form method="post">
         {% csrf_token %}
