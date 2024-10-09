@@ -42,9 +42,17 @@ This plan outlines the steps to create a basic playable version of Startup Simul
    - Implement basic win/lose scenarios
    - Create an end game screen
 
-10. Implement resource allocation
+9.5. Refactor turn-based gameplay
+   - Connect "end turn" action to project progress
+   - Implement logical salary deduction per turn
+   - Remove manual project update button
+   - Ensure turn counter advances correctly
+
+10. Implement resource allocation and revenue generation
     - Create a view for assigning developers to projects
     - Implement basic resource management logic
+    - Add simple revenue generation mechanics (e.g., completed projects generate income)
+    - Balance income and expenses to make the game winnable
 
 11. Develop basic result visualization
     - Create a simple dashboard for viewing game progress

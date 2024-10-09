@@ -144,3 +144,26 @@ Improvements for MVP/future versions:
 - Consider cloud saves for the hosted version
 
 This list will be updated and expanded as development progresses and new improvement areas are identified.
+
+## End Game Conditions
+
+Current implementation (demo version):
+- Simple win condition: $1 million in cash
+- Simple lose condition: $0 in cash
+- Game ends upon reaching either condition
+
+Improvements for MVP/future versions:
+- Redefine "million-dollar company" based on company valuation, not cash
+- Implement a more complex valuation system considering various factors:
+  - Revenue
+  - Growth rate
+  - Industry-specific metrics
+  - Market conditions
+- Allow players to continue playing after reaching win conditions
+- Implement multiple tiers of success (e.g., million-dollar, billion-dollar valuations)
+- Create more nuanced lose conditions:
+  - Implement financing options to prevent instant loss at $0 cash
+  - Consider "losing control of the company" as a primary lose condition
+  - Explore gameplay options after losing control (e.g., starting a new company, attempting to regain control)
+- Add industry-specific win/lose conditions
+- Implement long-term goals and achievements beyond initial success

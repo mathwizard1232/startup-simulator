@@ -35,6 +35,10 @@ class GameLoopView(View):
             return redirect('start_game')
 
         company = Company.objects.get(id=company_id)
+        
+        if company.game_status != 'ONGOING':
+            return redirect('end_game')
+
         employees = company.employees.all()
         projects = company.projects.all()
 
@@ -48,6 +52,21 @@ class GameLoopView(View):
         return render(request, 'game/game_loop.html', context)
 
     def post(self, request):
+        company_id = request.session.get('company_id')
+        company = Company.objects.get(id=company_id)
+
+        # Check win condition
+        if company.funds >= 1000000:  # $1 million
+            company.game_status = 'WON'
+            company.save()
+            return redirect('end_game')
+
+        # Check lose condition
+        if company.funds <= 0:
+            company.game_status = 'LOST'
+            company.save()
+            return redirect('end_game')
+
         # Process turn actions here
         # For now, just increment the turn counter
         request.session['turn'] = request.session.get('turn', 1) + 1
@@ -251,3 +270,16 @@ class DecisionMakingView(View):
                         project=project,
                         state='UNDETECTED'
                     )
+
+class EndGameView(View):
+    def get(self, request):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        context = {
+            'company': company,
+            'game_status': company.game_status,
+        }
+        return render(request, 'game/end_game.html', context)

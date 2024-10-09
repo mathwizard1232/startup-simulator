@@ -18,6 +18,12 @@ class Company(models.Model):
         ('optional', 'Optional Overtime'),
         ('mandatory', 'Mandatory Overtime'),
     ])
+    GAME_STATUS_CHOICES = [
+        ('ONGOING', 'Ongoing'),
+        ('WON', 'Won'),
+        ('LOST', 'Lost'),
+    ]
+    game_status = models.CharField(max_length=10, choices=GAME_STATUS_CHOICES, default='ONGOING')
 
     def __str__(self):
         return self.name
