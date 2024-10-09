@@ -30,6 +30,8 @@ Improvement for MVP/future versions:
     - Generate bugs primarily when code is created or modified
     - Adjust bug probability based on current policies (e.g., overtime, status report frequency)
     - Remove or significantly reduce bug generation from policy changes alone
+  - Improve bug naming and descriptions to be more realistic and informative
+  - Implement a system for generating diverse and context-appropriate bug descriptions
 
 ## Project Management
 

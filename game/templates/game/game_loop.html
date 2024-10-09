@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
     <title>Startup Simulator - Turn {{ turn }}</title>
+    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
 </head>
 <body>
     <h1>{{ company.name }} - Turn {{ turn }}</h1>

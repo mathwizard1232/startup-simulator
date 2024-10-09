@@ -227,6 +227,9 @@ class DecisionMakingView(View):
             elif status_report_frequency == 'weekly':
                 employee.productivity += 5
                 employee.morale += 2
+            elif status_report_frequency == 'monthly':
+                employee.productivity += 10
+                employee.morale -= 2
 
             # Overtime policy affects productivity, morale, and bug generation
             if overtime_policy == 'mandatory':

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
     <title>Make Decisions - Startup Simulator</title>
+    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
 </head>
 <body>
     <h1>Make Decisions for {{ company.name }}</h1>
@@ -13,16 +15,16 @@
         
         <label for="status_report_frequency">Status Report Frequency:</label>
         <select name="status_report_frequency" id="status_report_frequency">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
+            <option value="daily" {% if company.status_report_frequency == 'daily' %}selected{% endif %}>Daily</option>
+            <option value="weekly" {% if company.status_report_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+            <option value="monthly" {% if company.status_report_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
         </select>
 
         <label for="overtime_policy">Overtime Policy:</label>
         <select name="overtime_policy" id="overtime_policy">
-            <option value="no_overtime">No Overtime</option>
-            <option value="optional">Optional Overtime</option>
-            <option value="mandatory">Mandatory Overtime</option>
+            <option value="no_overtime" {% if company.overtime_policy == 'no_overtime' %}selected{% endif %}>No Overtime</option>
+            <option value="optional" {% if company.overtime_policy == 'optional' %}selected{% endif %}>Optional Overtime</option>
+            <option value="mandatory" {% if company.overtime_policy == 'mandatory' %}selected{% endif %}>Mandatory Overtime</option>
         </select>
 
         <button type="submit">Apply Decisions</button>
