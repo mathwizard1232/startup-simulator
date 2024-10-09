@@ -35,6 +35,7 @@ class Employee(models.Model):
     skill_level = models.IntegerField(default=1)
     salary = models.DecimalField(max_digits=10, decimal_places=2)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='employees')
+    project = models.ForeignKey('Project', on_delete=models.SET_NULL, null=True, blank=True, related_name='employees')
     morale = models.IntegerField(default=100)
     productivity = models.IntegerField(default=100)
 
@@ -96,6 +97,7 @@ class Feature(models.Model):
 class Bug(models.Model):
     description = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='bugs')
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name='bugs', null=True, blank=True)
     STATE_CHOICES = [
         ('UNDETECTED', 'Undetected'),
         ('DETECTED', 'Detected'),

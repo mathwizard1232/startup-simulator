@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .models import Company, Employee, Project, Feature, Bug
 import random
@@ -87,10 +87,11 @@ class GameLoopView(View):
 
         # Generate revenue from completed projects
         completed_projects = [project for project in company.projects.all() if project.state == 'COMPLETED']
-        company.revenue += Decimal('10000') * Decimal(len(completed_projects))
+        for project in completed_projects:
+            revenue = Decimal('10000') * Decimal(project.complexity)
+            company.funds += revenue
+            company.revenue += revenue
 
-        # Update company funds with revenue
-        company.funds += company.revenue
         company.save()
 
     def process_project(self, project):
@@ -107,26 +108,26 @@ class GameLoopView(View):
                     feature.state = 'IN_PROGRESS'
                     # Chance to introduce bugs during development
                     if random.randint(1, 100) <= 30:  # 30% chance of creating a bug
-                        Bug.objects.create(feature=feature, description="Hidden bug", detected=False)
+                        Bug.objects.create(project=project, feature=feature, description="Hidden bug", state='UNDETECTED')
                 elif feature.state == 'IN_PROGRESS':
                     feature.state = 'TESTING'
                 elif feature.state == 'TESTING':
                     # Chance to detect existing bugs
-                    for bug in feature.bugs.filter(detected=False):
+                    for bug in feature.bugs.filter(state='UNDETECTED'):
                         if random.randint(1, 100) <= progress_chance:
                             bug.detected = True
                             bug.save()
                     
-                    if not feature.bugs.filter(detected=True).exists():
+                    if not feature.bugs.filter(state='DETECTED').exists():
                         feature.state = 'COMPLETED'
                 feature.save()
 
         # Fix detected bugs
-        for bug in Bug.objects.filter(feature__project=project, detected=True):
+        for bug in Bug.objects.filter(feature__project=project, state='DETECTED'):
             if random.randint(1, 100) <= progress_chance:
                 # Chance to introduce new bug while fixing
                 if random.randint(1, 100) <= 10:  # 10% chance of creating a new bug
-                    Bug.objects.create(feature=bug.feature, description="Bug introduced during fix", detected=False)
+                    Bug.objects.create(project=bug.project, feature=bug.feature, description="Bug introduced during fix", state='UNDETECTED')
                 bug.delete()
 
         project.save()
@@ -165,7 +166,9 @@ class HireEmployeeView(View):
             company=company
         )
 
-        company.funds -= salary
+        # Deduct only the first week's salary
+        weekly_salary = Decimal(salary) / Decimal('52')
+        company.funds -= weekly_salary
         company.save()
 
         return redirect('game_loop')
@@ -210,13 +213,15 @@ class ManageProjectView(View):
         company = Company.objects.get(id=company_id)
         project = Project.objects.get(id=project_id, company=company)
         features = project.features.all()
-        detected_bugs = project.bugs.filter(state='DETECTED')
+        detected_bugs = Bug.objects.filter(project=project, state='DETECTED')
+        assigned_employees = project.employees.all()
 
         return render(request, 'game/manage_project.html', {
             'company': company,
             'project': project,
             'features': features,
-            'detected_bugs': detected_bugs
+            'detected_bugs': detected_bugs,
+            'assigned_employees': assigned_employees
         })
 
     def post(self, request, project_id):
@@ -342,3 +347,33 @@ class EndGameView(View):
             'game_status': company.game_status,
         }
         return render(request, 'game/end_game.html', context)
+
+class AssignEmployeesView(View):
+    def get(self, request, project_id):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        project = get_object_or_404(Project, id=project_id, company=company)
+        employees = company.employees.filter(project__isnull=True)
+
+        context = {
+            'company': company,
+            'project': project,
+            'employees': employees,
+        }
+        return render(request, 'game/assign_employees.html', context)
+
+    def post(self, request, project_id):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        project = get_object_or_404(Project, id=project_id, company=company)
+
+        selected_employee_ids = request.POST.getlist('employees')
+        Employee.objects.filter(id__in=selected_employee_ids).update(project=project)
+
+        return redirect('manage_project', project_id=project_id)

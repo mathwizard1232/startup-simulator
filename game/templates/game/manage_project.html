@@ -26,6 +26,17 @@
         <li>No bugs detected yet.</li>
     {% endfor %}
     </ul>
+
+    <h2>Assigned Employees:</h2>
+    <ul>
+    {% for employee in assigned_employees %}
+        <li>{{ employee.name }} - Skill Level: {{ employee.skill_level }}</li>
+    {% empty %}
+        <li>No employees assigned yet.</li>
+    {% endfor %}
+    </ul>
+    <a href="{% url 'assign_employees' project.id %}">Assign Employees</a>
+
     <a href="{% url 'game_loop' %}">Back to Game</a>
 </body>
 </html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>Assign Employees - Startup Simulator</title>
+    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
+</head>
+<body>
+    <h1>Assign Employees to {{ project.name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% for employee in employees %}
+            <label>
+                <input type="checkbox" name="employees" value="{{ employee.id }}">
+                {{ employee.name }} (Skill Level: {{ employee.skill_level }})
+            </label><br>
+        {% empty %}
+            <p>No available employees to assign.</p>
+        {% endfor %}
+        <button type="submit">Assign Employees</button>
+    </form>
+    <a href="{% url 'manage_project' project.id %}">Back to Project</a>
+</body>
+</html>

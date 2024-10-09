@@ -169,7 +169,7 @@ Improvements for MVP/future versions:
 - Implement long-term goals and achievements beyond initial success
 
 
-## Testing notes
+## Testing notes (in-game testing)
 
 """
 Notes for MVP/final version:
@@ -184,3 +184,28 @@ Notes for MVP/final version:
 4. Time-to-market vs. code quality trade-off should be a key strategic decision for players.
 5. Different employee types could have varying effectiveness in coding, testing, and bug fixing.
 """
+
+## Refactor notes
+
+We have a lot of very long files. We should refactor to break up these files.
+
+We should opportunistically consider refactors at key steps, like after demo is done
+and while planning for MVP, or after MVP and while planning for the next version
+and so on.
+
+We go fast when implementing a particular plan, and will be lazy on refactoring,
+but will include refactoring before beginning any major new phase of development.
+
+## Testing notes (our testing of Startup Simulator)
+
+We've reached a state of complexity where we really do need automated tests
+to avoid breaking existing functionality while making new changes.
+
+These tests should be end-to-end tests, in addition to any unit tests we may
+or may not add. We should have some testing that exercises the entire system.
+
+I don't know what tooling would be best for this. We should look into that.
+
+We are going to continue to do planning first, coding second, manual testing third,
+and automated testing fourth, but we want to add automated testing to avoid
+having to keep re-testing the entire system after every change or missing new bugs.
