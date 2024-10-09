@@ -6,12 +6,22 @@
     <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
 </head>
 <body>
-    <h1>Start a New Game</h1>
+    <h1>Found a New Startup</h1>
     <form method="post">
         {% csrf_token %}
         <label for="company_name">Company Name:</label>
         <input type="text" id="company_name" name="company_name" required>
+        
+        <label for="industry">Industry:</label>
+        <select id="industry" name="industry" required>
+            <option value="FINTECH">Fintech</option>
+            <option value="GAME_DEV">Game Development</option>
+        </select>
+        
         <button type="submit">Start Game</button>
     </form>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
 </body>
 </html>

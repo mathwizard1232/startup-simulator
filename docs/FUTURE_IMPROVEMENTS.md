@@ -51,12 +51,37 @@ Improvements for MVP/future versions:
 
 Current implementation (demo version):
 - Basic hiring of perfectionist or fast worker
+- Fixed skill levels for each type
+- No employee names
 
 Improvements for MVP/future versions:
-- Expand employee attributes (e.g., experience, specializations, personality traits)
+- Implement a more realistic employee generation system:
+  - Generate unique names for employees
+  - Implement a range of skill levels for each employee type:
+    - Fast workers: random skill from 1-5
+    - Perfectionists: random skill from 3-7
+  - Make skill a hidden attribute, only revealed through gameplay mechanics
+- Expand employee attributes:
+  - Experience
+  - Specializations
+  - Personality traits
+  - More diverse employee types with various strengths and weaknesses
 - Implement skill development and training systems
+- Create a more complex salary calculation based on skills and experience
 - Add employee satisfaction and productivity metrics
-- Introduce team dynamics and synergy effects
+- Implement employee growth and skill improvement over time
+- Introduce team dynamics and synergy effects:
+  - Personality traits that affect team dynamics and project outcomes
+  - Compatibility between team members
+- Add employee management features:
+  - Performance reviews
+  - Promotions and demotions
+  - Employee retention strategies
+- Implement more realistic hiring processes:
+  - Job postings
+  - Resume screening
+  - Interviews
+  - Probation periods
 
 ## Project Management
 

@@ -1,8 +1,13 @@
 from django.db import models
 
 class Company(models.Model):
+    INDUSTRY_CHOICES = [
+        ('FINTECH', 'Fintech'),
+        ('GAME_DEV', 'Game Development'),
+    ]
     name = models.CharField(max_length=100)
     funds = models.DecimalField(max_digits=12, decimal_places=2)
+    industry = models.CharField(max_length=20, choices=INDUSTRY_CHOICES)
     status_report_frequency = models.CharField(max_length=20, default='weekly', choices=[
         ('daily', 'Daily'),
         ('weekly', 'Weekly'),
@@ -33,6 +38,16 @@ class Project(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='projects')
+    complexity = models.IntegerField(default=1)
+    
+    def generate_industry_specific_features(self):
+        if self.company.industry == 'FINTECH':
+            Feature.objects.create(name="Security Implementation", project=self)
+            Feature.objects.create(name="Payment Processing", project=self)
+        elif self.company.industry == 'GAME_DEV':
+            Feature.objects.create(name="Graphics Engine", project=self)
+            Feature.objects.create(name="Game Mechanics", project=self)
+        Feature.objects.create(name="User Interface", project=self)
 
     def __str__(self):
         return self.name
