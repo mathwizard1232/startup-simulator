@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Make Decisions - Startup Simulator</title>
+</head>
+<body>
+    <h1>Make Decisions for {{ company.name }}</h1>
+    <p>Company Funds: ${{ company.funds }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <h2>Micromanagement Options</h2>
+        
+        <label for="status_report_frequency">Status Report Frequency:</label>
+        <select name="status_report_frequency" id="status_report_frequency">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+        </select>
+
+        <label for="overtime_policy">Overtime Policy:</label>
+        <select name="overtime_policy" id="overtime_policy">
+            <option value="no_overtime">No Overtime</option>
+            <option value="optional">Optional Overtime</option>
+            <option value="mandatory">Mandatory Overtime</option>
+        </select>
+
+        <button type="submit">Apply Decisions</button>
+    </form>
+
+    <a href="{% url 'game_loop' %}">Back to Game</a>
+</body>
+</html>

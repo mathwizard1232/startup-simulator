@@ -17,6 +17,8 @@ def generate_hidden_bugs(self, project):
         )
 ```
 
+See also `increase_bug_probability` (logic needs to be made more realistic/complex)
+
 Improvement for MVP/future versions:
 - Implement a more realistic bug generation system:
   - No bugs when there's no code
@@ -24,6 +26,24 @@ Improvement for MVP/future versions:
   - Factor in employee skill levels and time constraints
   - Consider project difficulty when calculating bug probability
   - Implement different types of bugs (minor, major, critical)
+  - Refactor bug generation system:
+    - Generate bugs primarily when code is created or modified
+    - Adjust bug probability based on current policies (e.g., overtime, status report frequency)
+    - Remove or significantly reduce bug generation from policy changes alone
+
+## Project Management
+
+Current implementation (demo version):
+- Basic project creation with predefined features
+- Simple "Update Project" functionality with random progress and bug detection
+
+Improvements for MVP/future versions:
+- Implement more detailed project management mechanics
+- Allow custom feature creation and prioritization
+- Introduce project deadlines and consequences for missing them
+- Implement more realistic progress calculation based on employee skills and workload
+- Add different project types with varying complexity and requirements
+- Introduce project dependencies and resource conflicts
 
 ## Employee Management
 
