@@ -25,6 +25,8 @@
     {% endfor %}
     </ul>
 
+    <a href="{% url 'hire_employee' %}">Hire Employee</a>
+
     <form method="post">
         {% csrf_token %}
         <button type="submit">End Turn</button>

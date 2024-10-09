@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hire Employee - Startup Simulator</title>
+</head>
+<body>
+    <h1>Hire a New Employee</h1>
+    <p>Company Funds: ${{ company.funds }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <h2>Choose Employee Type:</h2>
+        <input type="radio" id="perfectionist" name="employee_type" value="perfectionist" required>
+        <label for="perfectionist">Perfectionist (Higher skill, higher salary)</label><br>
+        <input type="radio" id="fast_worker" name="employee_type" value="fast_worker">
+        <label for="fast_worker">Fast Worker (Lower skill, lower salary)</label><br>
+        <button type="submit">Hire Employee</button>
+    </form>
+    <a href="{% url 'game_loop' %}">Back to Game</a>
+</body>
+</html>
