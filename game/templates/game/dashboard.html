@@ -73,9 +73,9 @@
                     data: {{ completed_features|safe }},
                     backgroundColor: 'green'
                 }, {
-                    label: 'Total Features',
-                    data: {{ total_features|safe }},
-                    backgroundColor: 'blue'
+                    label: 'Incomplete Features',
+                    data: {{ incomplete_features|safe }},
+                    backgroundColor: 'red'
                 }]
             },
             options: {

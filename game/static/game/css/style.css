@@ -20,12 +20,22 @@ li {
 }
 
 a {
-    color: #1a73e8;
+    display: inline-block;
+    margin: 5px;
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
     text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 a:hover {
-    text-decoration: underline;
+    background-color: #45a049;
+}
+
+a:active {
+    background-color: #3e8e41;
 }
 
 button {

@@ -11,8 +11,12 @@
         {% csrf_token %}
         {% for employee in employees %}
             <label>
-                <input type="checkbox" name="employees" value="{{ employee.id }}">
+                <input type="checkbox" name="employees" value="{{ employee.id }}" 
+                       {% if employee.project == project %}checked{% endif %}>
                 {{ employee.name }} (Skill Level: {{ employee.skill_level }})
+                {% if employee.project and employee.project != project %}
+                    (Currently assigned to: {{ employee.project.name }})
+                {% endif %}
             </label><br>
         {% empty %}
             <p>No available employees to assign.</p>

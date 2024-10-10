@@ -85,7 +85,11 @@ class GameLoopView(View):
 
         # Process projects
         for project in company.projects.all():
-            self.process_project(project)
+            if project.employees.exists():
+                self.process_project(project)
+            else:
+                # Optionally, you could add some penalty for unattended projects
+                pass
 
         # Generate revenue from completed projects
         completed_projects = [project for project in company.projects.all() if project.state == 'COMPLETED']
@@ -365,10 +369,9 @@ class AssignEmployeesView(View):
 
         company = Company.objects.get(id=company_id)
         project = get_object_or_404(Project, id=project_id, company=company)
-        employees = company.employees.filter(project__isnull=True)
+        employees = company.employees.all()
 
         context = {
-            'company': company,
             'project': project,
             'employees': employees,
         }
@@ -381,8 +384,11 @@ class AssignEmployeesView(View):
 
         company = Company.objects.get(id=company_id)
         project = get_object_or_404(Project, id=project_id, company=company)
-
+        
         selected_employee_ids = request.POST.getlist('employees')
+        project.employees.clear()  # Remove all current assignments
+        
+        # Assign selected employees to the project
         Employee.objects.filter(id__in=selected_employee_ids).update(project=project)
 
         return redirect('manage_project', project_id=project_id)
@@ -406,19 +412,24 @@ class DashboardView(View):
         if not revenue_history:
             revenue_history = [0]
 
-        turn_numbers = list(range(0, len(funds_history)))
+        # Add current turn's values
+        funds_history.append(float(company.funds))
+        revenue_history.append(float(company.revenue))
+
+        turn_numbers = list(range(1, len(funds_history) + 1))
 
         # Prepare data for project progress chart
         projects = company.projects.all()
         project_names = [project.name for project in projects]
         completed_features = [project.features.filter(state='COMPLETED').count() for project in projects]
         total_features = [project.features.count() for project in projects]
+        incomplete_features = [total - completed for total, completed in zip(total_features, completed_features)]
 
         # Add a "No projects" entry if there are no projects
         if not projects:
             project_names = ["No projects"]
             completed_features = [0]
-            total_features = [0]
+            incomplete_features = [0]
 
         context = {
             'company': company,
@@ -428,7 +439,7 @@ class DashboardView(View):
             'revenue_history': json.dumps(revenue_history),
             'project_names': json.dumps(project_names),
             'completed_features': json.dumps(completed_features),
-            'total_features': json.dumps(total_features),
+            'incomplete_features': json.dumps(incomplete_features),
         }
 
         return render(request, 'game/dashboard.html', context)
