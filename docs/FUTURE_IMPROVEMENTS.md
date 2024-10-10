@@ -209,3 +209,96 @@ I don't know what tooling would be best for this. We should look into that.
 We are going to continue to do planning first, coding second, manual testing third,
 and automated testing fourth, but we want to add automated testing to avoid
 having to keep re-testing the entire system after every change or missing new bugs.
+
+---
+
+Above is the original version; below is the post-MVP version.
+
+Keeping both for now as the above may still be useful in MVP planning and development.
+
+# Future Improvements for Startup Simulator
+
+This document outlines improvements and changes to be considered for future versions of Startup Simulator, beyond the MVP.
+
+## Bug Generation System
+
+[The existing content for this section remains relevant for future improvements]
+
+## Project Management
+
+Improvements for future versions:
+- Implement more complex project types with varying requirements
+- Introduce project dependencies and resource conflicts
+- Add advanced project risk management features
+
+## Employee Management
+
+Improvements for future versions:
+- Implement more diverse employee types with various strengths and weaknesses
+- Add complex employee growth and skill improvement systems
+- Introduce team dynamics and synergy effects
+- Implement advanced hiring processes (job postings, resume screening, interviews)
+
+## Game Loop and Turn Structure
+
+Improvements for future versions:
+- Implement more complex time-based events and market shifts
+- Add long-term strategic planning elements
+
+## User Interface
+
+Improvements for future versions:
+- Develop advanced data visualizations and analytics tools
+- Implement more interactive and dynamic UI elements
+
+## Industry-Specific Mechanics
+
+Improvements for future versions:
+- Add more industries (e.g., Biotech, Consumer Hardware, Space Technology)
+- Implement cross-industry projects and collaborations
+
+## Financial Management
+
+Improvements for future versions:
+- Add complex investment rounds and funding mechanics
+- Implement detailed market dynamics affecting company valuation
+- Introduce more advanced financial instruments and strategies
+
+## Save/Load Functionality
+
+Improvements for future versions:
+- Implement cloud saves for the hosted version
+- Add the ability to share and compare game progress with other players
+
+## End Game Conditions
+
+Improvements for future versions:
+- Implement multiple tiers of success (e.g., million-dollar, billion-dollar valuations)
+- Create more complex win/lose scenarios based on industry-specific metrics
+- Add long-term goals and achievements beyond initial success
+
+## Multiplayer Features
+
+- Introduce online multiplayer competition
+- Develop cooperative gameplay modes for team-based startup management
+- Implement leaderboards and global challenges
+
+## Educational Partnerships
+
+- Explore collaborations with educational institutions
+- Create modules that can be used in classroom settings
+
+## Community Engagement
+
+- Implement a system for players to vote on and influence future development directions
+- Create a platform for user-generated content and mods
+
+## Refactor notes
+
+[The existing content for this section remains relevant]
+
+## Testing notes (our testing of Startup Simulator)
+
+[The existing content for this section remains relevant]
+
+This list will be updated and expanded as development progresses and new improvement areas are identified beyond the MVP phase.
