@@ -3,6 +3,8 @@ from django.views import View
 from .models import Company, Employee, Project, Feature, Bug
 import random
 from decimal import Decimal
+import json
+from django.db.models import Count
 
 class StartGameView(View):
     def get(self, request):
@@ -92,6 +94,13 @@ class GameLoopView(View):
             company.funds += revenue
             company.revenue += revenue
 
+        # Update historical data
+        funds_history = json.loads(company.funds_history)
+        revenue_history = json.loads(company.revenue_history)
+        funds_history.append(float(company.funds))
+        revenue_history.append(float(company.revenue))
+        company.funds_history = json.dumps(funds_history)
+        company.revenue_history = json.dumps(revenue_history)
         company.save()
 
     def process_project(self, project):
@@ -377,3 +386,49 @@ class AssignEmployeesView(View):
         Employee.objects.filter(id__in=selected_employee_ids).update(project=project)
 
         return redirect('manage_project', project_id=project_id)
+
+class DashboardView(View):
+    def get(self, request):
+        company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
+        company = Company.objects.get(id=company_id)
+        turn = request.session.get('turn', 1)
+
+        # Prepare data for financial chart
+        funds_history = json.loads(company.funds_history) if company.funds_history else []
+        revenue_history = json.loads(company.revenue_history) if company.revenue_history else []
+        
+        # Add starting values if the histories are empty
+        if not funds_history:
+            funds_history = [float(company.funds)]
+        if not revenue_history:
+            revenue_history = [0]
+
+        turn_numbers = list(range(0, len(funds_history)))
+
+        # Prepare data for project progress chart
+        projects = company.projects.all()
+        project_names = [project.name for project in projects]
+        completed_features = [project.features.filter(state='COMPLETED').count() for project in projects]
+        total_features = [project.features.count() for project in projects]
+
+        # Add a "No projects" entry if there are no projects
+        if not projects:
+            project_names = ["No projects"]
+            completed_features = [0]
+            total_features = [0]
+
+        context = {
+            'company': company,
+            'turn': turn,
+            'turn_numbers': json.dumps(turn_numbers),
+            'funds_history': json.dumps(funds_history),
+            'revenue_history': json.dumps(revenue_history),
+            'project_names': json.dumps(project_names),
+            'completed_features': json.dumps(completed_features),
+            'total_features': json.dumps(total_features),
+        }
+
+        return render(request, 'game/dashboard.html', context)

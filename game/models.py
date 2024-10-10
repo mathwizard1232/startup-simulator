@@ -25,6 +25,8 @@ class Company(models.Model):
     ]
     game_status = models.CharField(max_length=10, choices=GAME_STATUS_CHOICES, default='ONGOING')
     revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    funds_history = models.TextField(default='[]')
+    revenue_history = models.TextField(default='[]')
 
     def __str__(self):
         return self.name
