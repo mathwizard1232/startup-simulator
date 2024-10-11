@@ -32,18 +32,21 @@ class StartGameView(View):
 class GameLoopView(View):
     def get(self, request):
         company_id = request.session.get('company_id')
-        turn = request.session.get('turn', 1)
-
         if not company_id:
-            return redirect('start_game')
+            # If no company_id in session, check if there's an active company
+            active_company = Company.objects.filter(game_status='ONGOING').first()
+            if active_company:
+                # If there's an active company, set it in the session
+                request.session['company_id'] = active_company.id
+                company_id = active_company.id
+            else:
+                # If no active company, redirect to start game
+                return redirect('start_game')
 
         company = Company.objects.get(id=company_id)
-        
-        if company.game_status != 'ONGOING':
-            return redirect('end_game')
-
         employees = company.employees.all()
         projects = company.projects.all()
+        turn = request.session.get('turn', 1)
 
         context = {
             'company': company,
@@ -56,20 +59,20 @@ class GameLoopView(View):
 
     def post(self, request):
         company_id = request.session.get('company_id')
+        if not company_id:
+            return redirect('start_game')
+
         company = Company.objects.get(id=company_id)
 
         # Process turn actions
-        self.process_turn(company)
+        game_continues = self.process_turn(company)
+
+        if not game_continues:
+            return redirect('end_game')
 
         # Check win condition
         if company.funds >= 1000000:  # $1 million
             company.game_status = 'WON'
-            company.save()
-            return redirect('end_game')
-
-        # Check lose condition
-        if company.funds <= 0:
-            company.game_status = 'LOST'
             company.save()
             return redirect('end_game')
 
@@ -82,6 +85,12 @@ class GameLoopView(View):
         # Deduct employee salaries
         total_salary = sum(employee.salary for employee in company.employees.all())
         company.funds -= Decimal(total_salary) / Decimal('52')  # Assuming weekly turns and annual salary
+
+        # Check if funds are negative
+        if company.funds < 0:
+            company.game_status = 'LOST'
+            company.save()
+            return False  # Return False to indicate game over
 
         # Process projects
         for project in company.projects.all():
@@ -106,6 +115,7 @@ class GameLoopView(View):
         company.funds_history = json.dumps(funds_history)
         company.revenue_history = json.dumps(revenue_history)
         company.save()
+        return True  # Return True to indicate the game should continue
 
     def process_project(self, project):
         employees = project.employees.all()
@@ -171,6 +181,16 @@ class HireEmployeeView(View):
             skill_level = random.randint(5, 8)
             salary = random.randint(60000, 90000)
 
+        # Calculate the first week's salary
+        weekly_salary = Decimal(salary) / Decimal('52')
+
+        # Check if the company can afford the first week's salary
+        if company.funds < weekly_salary:
+            return render(request, 'game/hire_employee.html', {
+                'company': company,
+                'error': "Not enough funds to hire this employee."
+            })
+
         employee = Employee.objects.create(
             name=f"Employee {company.employees.count() + 1}",
             is_perfectionist=is_perfectionist,
@@ -179,8 +199,7 @@ class HireEmployeeView(View):
             company=company
         )
 
-        # Deduct only the first week's salary
-        weekly_salary = Decimal(salary) / Decimal('52')
+        # Deduct the first week's salary
         company.funds -= weekly_salary
         company.save()
 
