@@ -29,4 +29,5 @@ So feel free to run it, but know that this is just a rough demonstration of the 
 Of more initial interest might be the design documents which covers a lot of the ideas
 for future development.
 
-Up next will be planning for the "MVP" step (next phase which should polish it up enough to be worth showing off to see if there's any interest), adding testing to avoid regressions, refactoring existing code, and then following the then-created MVP implementation plan.
+I'm currently working on refactoring the code in preparation for the next phase of development. Feel
+free to run latest or to check out the latest tag to see the demo in a working version if latest is broken. I've been bumping patch versions so far but when I complete the MVP I'll give it at least a minor version bump.
