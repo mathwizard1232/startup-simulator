@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import Company, Bug
+from .models.company import Company
+from .models.bug import Bug
 import random
 
 class DecisionMakingView(View):

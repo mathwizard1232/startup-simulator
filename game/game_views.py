@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import Company, Project, Bug
+from .models.company import Company
+from .models.project import Project
+from .models.bug import Bug
 import json
 from decimal import Decimal
 import random

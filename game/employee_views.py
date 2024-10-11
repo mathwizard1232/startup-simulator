@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import Company, Employee
+from .models.company import Company
+from .models.employee import Employee
 import random
 from decimal import Decimal
 

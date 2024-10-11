@@ -1,6 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
-from .models import Company, Project, Employee, Feature, Bug
+from .models.company import Company
+from .models.project import Project
+from .models.employee import Employee
+from .models.feature import Feature
+from .models.bug import Bug
 
 class CreateProjectView(View):
     def get(self, request):
