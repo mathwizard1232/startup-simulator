@@ -128,4 +128,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Try to remember to hook this up to display somewhere
 # And to increment it on releases (maybe add tagging?)
-VERSION = '0.0.0'
+VERSION = '0.0.1'

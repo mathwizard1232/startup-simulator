@@ -23,8 +23,8 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
             print(f"Failed to initialize WebDriver: {e}")
             raise
 
-        # Initialize WebDriverWait with increased timeout
-        self.wait = WebDriverWait(self.driver, 20)
+        # Initialize WebDriverWait with short timeout
+        self.wait = WebDriverWait(self.driver, 2)
         print(f"Driver session ID: {self.driver.session_id}")
 
     def tearDown(self):
@@ -40,8 +40,8 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
 
     def test_win_scenario(self):
         try:
-            # Navigate to the game start page and start a new game
-            self.start_new_game()
+            # Start a new game
+            self.start_new_game('Test Company', 'Fintech')
 
             # Play through the game
             for turn in range(200):  # Assume 200 turns to reach win condition by single project
@@ -51,13 +51,8 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
                 if turn == 0:
                     self.make_turn_decisions(first_turn=True)
                 
-                # End turn
-                end_turn_button = self.wait.until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
-                )
-                print("Found end turn button")
-                end_turn_button.click()
-                print("Clicked end turn button")
+                # End the current turn
+                self.end_turn()
 
                 # Check for win condition
                 if self.check_win_condition():
@@ -76,56 +71,17 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
 
     def test_lose_scenario(self):
         try:
+            # Start a new game
             self.start_new_game('Test Company', 'Fintech')
-            print("Game loop page loaded successfully")
 
             # Hire employees until we can't afford more
-            while True:
-                try:
-                    hire_button = self.wait.until(
-                        EC.element_to_be_clickable((By.LINK_TEXT, 'Hire New Employee'))
-                    )
-                    hire_button.click()
-                    print("Clicked hire button")
-
-                    # Wait for the hire page to load
-                    self.wait.until(EC.presence_of_element_located((By.ID, 'fast_worker')))
-                    print("Hire page loaded")
-
-                    # Submit the form with the default selection (fast worker)
-                    submit_button = self.wait.until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
-                    )
-                    submit_button.click()
-                    print("Submitted hire form")
-
-                    # Check for error message
-                    error_message = self.driver.find_elements(By.XPATH, "//p[contains(text(), 'Not enough funds to hire this employee')]")
-                    if error_message:
-                        print("Not enough funds to hire more employees")
-                        self.driver.get(f'{self.live_server_url}/game/game/')
-                        print("Returned to game loop")
-                        break
-                    else:
-                        print("No error message found, continuing to hire")
-                    # Wait for redirect back to game loop
-                    self.wait.until(EC.url_contains('/game/game/'))
-                    print("Redirected back to game loop after hiring")
-
-                except Exception as e:
-                    print(f"No more employees can be hired or an error occurred during hiring: {e}")
-                    break  # Break the loop if we can't hire more employees
+            self.hire_employees_until_broke()
 
             # Advance turns until we lose or reach a maximum number of turns
             max_turns = 50
             for turn in range(max_turns):
                 print(f"Turn {turn + 1}")
-                end_turn_button = self.wait.until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
-                )
-                print("Found end turn button")
-                end_turn_button.click()
-                print("Clicked end turn button")
+                self.end_turn()
 
                 # Check for lose condition
                 if self.check_lose_condition():
@@ -291,6 +247,22 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
             )
         )
         print("Game loop page loaded successfully")
+
+    def end_turn(self):
+        end_turn_button = self.wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
+        )
+        print("Found end turn button")
+        end_turn_button.click()
+        print("Clicked end turn button")
+
+    def hire_employees_until_broke(self):
+        while True:
+            try:
+                self.hire_employee()
+            except Exception as e:
+                print(f"No more employees can be hired or an error occurred during hiring: {e}")
+                break  # Break the loop if we can't hire more employees
 
 if __name__ == '__main__':
     unittest.main()
