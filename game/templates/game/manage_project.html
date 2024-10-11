@@ -1,42 +1,38 @@
-<!DOCTYPE html>
-{% load static %}
-<html>
-<head>
-    <title>Manage Project - Startup Simulator</title>
-    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
-</head>
-<body>
-    <h1>Manage Project: {{ project.name }}</h1>
-    <p>Company Funds: ${{ company.funds }}</p>
-    <h2>Project Description:</h2>
-    <p>{{ project.description }}</p>
-    
-    <h2>Features:</h2>
-    <ul>
-    {% for feature in features %}
-        <li>{{ feature.name }} - Status: {{ feature.get_state_display }}</li>
-    {% endfor %}
-    </ul>
+{% extends 'game/base.html' %}
 
-    <h2>Detected Bugs:</h2>
-    <ul>
-    {% for bug in detected_bugs %}
-        <li>{{ bug.description }}</li>
-    {% empty %}
-        <li>No bugs detected yet.</li>
-    {% endfor %}
-    </ul>
+{% block title %}Manage Project - Startup Simulator{% endblock %}
 
-    <h2>Assigned Employees:</h2>
-    <ul>
-    {% for employee in assigned_employees %}
-        <li>{{ employee.name }} - Skill Level: {{ employee.skill_level }}</li>
-    {% empty %}
-        <li>No employees assigned yet.</li>
-    {% endfor %}
-    </ul>
-    <a href="{% url 'assign_employees' project.id %}">Assign Employees</a>
+{% block content %}
+<h2>Manage Project: {{ project.name }}</h2>
+<p>Company Funds: ${{ company.funds }}</p>
+<h3>Project Description:</h3>
+<p>{{ project.description }}</p>
 
-    <a href="{% url 'game_loop' %}">Back to Game</a>
-</body>
-</html>
+<h3>Features:</h3>
+<ul>
+{% for feature in features %}
+    <li>{{ feature.name }} - Status: {{ feature.get_state_display }}</li>
+{% endfor %}
+</ul>
+
+<h3>Detected Bugs:</h3>
+<ul>
+{% for bug in detected_bugs %}
+    <li>{{ bug.description }}</li>
+{% empty %}
+    <li>No bugs detected yet.</li>
+{% endfor %}
+</ul>
+
+<h3>Assigned Employees:</h3>
+<ul>
+{% for employee in assigned_employees %}
+    <li>{{ employee.name }} - Skill Level: {{ employee.skill_level }}</li>
+{% empty %}
+    <li>No employees assigned yet.</li>
+{% endfor %}
+</ul>
+<a href="{% url 'assign_employees' project.id %}">Assign Employees</a>
+
+<a href="{% url 'game_loop' %}">Back to Game</a>
+{% endblock %}

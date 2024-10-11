@@ -1,28 +1,24 @@
-<!DOCTYPE html>
-{% load static %}
-<html>
-<head>
-    <title>Assign Employees - Startup Simulator</title>
-    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
-</head>
-<body>
-    <h1>Assign Employees to {{ project.name }}</h1>
-    <form method="post">
-        {% csrf_token %}
-        {% for employee in employees %}
-            <label>
-                <input type="checkbox" name="employees" value="{{ employee.id }}" 
-                       {% if employee.project == project %}checked{% endif %}>
-                {{ employee.name }} (Skill Level: {{ employee.skill_level }})
-                {% if employee.project and employee.project != project %}
-                    (Currently assigned to: {{ employee.project.name }})
-                {% endif %}
-            </label><br>
-        {% empty %}
-            <p>No available employees to assign.</p>
-        {% endfor %}
-        <button type="submit">Assign Employees</button>
-    </form>
-    <a href="{% url 'manage_project' project.id %}">Back to Project</a>
-</body>
-</html>
+{% extends 'game/base.html' %}
+
+{% block title %}Assign Employees - Startup Simulator{% endblock %}
+
+{% block content %}
+<h2>Assign Employees to {{ project.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {% for employee in employees %}
+        <label>
+            <input type="checkbox" name="employees" value="{{ employee.id }}" 
+                   {% if employee.project == project %}checked{% endif %}>
+            {{ employee.name }} (Skill Level: {{ employee.skill_level }})
+            {% if employee.project and employee.project != project %}
+                (Currently assigned to: {{ employee.project.name }})
+            {% endif %}
+        </label><br>
+    {% empty %}
+        <p>No available employees to assign.</p>
+    {% endfor %}
+    <button type="submit">Assign Employees</button>
+</form>
+<a href="{% url 'manage_project' project.id %}">Back to Project</a>
+{% endblock %}

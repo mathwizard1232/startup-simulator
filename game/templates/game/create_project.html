@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-{% load static %}
-<html>
-<head>
-    <title>Create Project - Startup Simulator</title>
-    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
-</head>
-<body>
-    <h1>Create a New Project</h1>
-    <p>Company Funds: ${{ company.funds }}</p>
-    <form method="post">
-        {% csrf_token %}
-        <label for="project_name">Project Name:</label>
-        <input type="text" id="project_name" name="project_name" required><br>
-        <label for="project_description">Project Description:</label>
-        <textarea id="project_description" name="project_description" required></textarea><br>
-        <button type="submit">Create Project</button>
-    </form>
-    <a href="{% url 'game_loop' %}">Back to Game</a>
-</body>
-</html>
+{% extends 'game/base.html' %}
+
+{% block title %}Create Project - Startup Simulator{% endblock %}
+
+{% block content %}
+<h2>Create a New Project</h2>
+<p>Company Funds: ${{ company.funds }}</p>
+<form method="post">
+    {% csrf_token %}
+    <label for="project_name">Project Name:</label>
+    <input type="text" id="project_name" name="project_name" required><br>
+    <label for="project_description">Project Description:</label>
+    <textarea id="project_description" name="project_description" required></textarea><br>
+    <button type="submit">Create Project</button>
+</form>
+<a href="{% url 'game_loop' %}">Back to Game</a>
+{% endblock %}

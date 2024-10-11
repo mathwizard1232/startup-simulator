@@ -241,12 +241,19 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
         start_button.click()
         print("Clicked start button")
 
-        self.wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, f"//h1[contains(text(), '{company_name}')]")
+        try:
+            WebDriverWait(self.driver, 2).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, f"//h2[contains(text(), '{company_name}')]")
+                )
             )
-        )
-        print("Game loop page loaded successfully")
+            print("Game loop page loaded successfully")
+        except Exception as e:
+            print(f"Error waiting for game loop page: {e}")
+            print(f"Current URL: {self.driver.current_url}")
+            print(f"Page source: {self.driver.page_source}")
+            self.take_screenshot('start_new_game_error')
+            raise
 
     def end_turn(self):
         end_turn_button = self.wait.until(

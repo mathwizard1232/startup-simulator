@@ -1,19 +1,15 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Game Over - Startup Simulator</title>
-    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
-</head>
-<body>
-    <h1>Game Over</h1>
-    <h2>{{ company.name }}</h2>
-    {% if game_status == 'WON' %}
-        <p>Congratulations! You've successfully grown your startup to a million-dollar company!</p>
-    {% else %}
-        <p>Unfortunately, your company has gone bankrupt. Better luck next time!</p>
-    {% endif %}
-    <p>Final Funds: ${{ company.funds }}</p>
-    <a href="{% url 'start_game' %}">Start New Game</a>
-</body>
-</html>
+{% extends 'game/base.html' %}
+
+{% block title %}Game Over - Startup Simulator{% endblock %}
+
+{% block content %}
+<h1>Game Over</h1>
+<h2>{{ company.name }}</h2>
+{% if game_status == 'WON' %}
+    <p>Congratulations! You've successfully grown your startup to a million-dollar company!</p>
+{% else %}
+    <p>Unfortunately, your company has gone bankrupt. Better luck next time!</p>
+{% endif %}
+<p>Final Funds: ${{ company.funds }}</p>
+<a href="{% url 'start_game' %}">Start New Game</a>
+{% endblock %}

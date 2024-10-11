@@ -1,40 +1,36 @@
-<!DOCTYPE html>
-{% load static %}
-<html>
-<head>
-    <title>Startup Simulator - Turn {{ turn }}</title>
-    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
-</head>
-<body>
-    <h1>{{ company.name }} - {{ company.get_industry_display }} - Turn {{ turn }}</h1>
-    <p>Funds: ${{ company.funds }}</p>
+{% extends 'game/base.html' %}
 
-    <h2>Employees</h2>
-    <ul>
-    {% for employee in employees %}
-        <li>{{ employee.name }} - Skill: {{ employee.skill_level }}</li>
-    {% empty %}
-        <li>No employees yet.</li>
-    {% endfor %}
-    </ul>
+{% block title %}Startup Simulator - Turn {{ turn }}{% endblock %}
 
-    <h2>Projects</h2>
-    <ul>
-    {% for project in projects %}
-        <li>{{ project.name }} - {{ project.description }} <a href="{% url 'manage_project' project.id %}">Manage</a></li>
-    {% empty %}
-        <li>No projects yet.</li>
-    {% endfor %}
-    </ul>
+{% block content %}
+<h2>{{ company.name }} - {{ company.get_industry_display }} - Turn {{ turn }}</h2>
+<p>Funds: ${{ company.funds }}</p>
 
-    <a href="{% url 'hire_employee' %}">Hire New Employee</a>
-    <a href="{% url 'create_project' %}">Create New Project</a>
-    <a href="{% url 'decision_making' %}">Make Decisions</a>
-    <a href="{% url 'dashboard' %}">View Dashboard</a>
+<h3>Employees</h3>
+<ul>
+{% for employee in employees %}
+    <li>{{ employee.name }} - Skill: {{ employee.skill_level }}</li>
+{% empty %}
+    <li>No employees yet.</li>
+{% endfor %}
+</ul>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">End Turn</button>
-    </form>
-</body>
-</html>
+<h3>Projects</h3>
+<ul>
+{% for project in projects %}
+    <li>{{ project.name }} - {{ project.description }} <a href="{% url 'manage_project' project.id %}">Manage</a></li>
+{% empty %}
+    <li>No projects yet.</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'hire_employee' %}">Hire New Employee</a>
+<a href="{% url 'create_project' %}">Create New Project</a>
+<a href="{% url 'decision_making' %}">Make Decisions</a>
+<a href="{% url 'dashboard' %}">View Dashboard</a>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">End Turn</button>
+</form>
+{% endblock %}

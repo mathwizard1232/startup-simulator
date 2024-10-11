@@ -1,105 +1,109 @@
-<!DOCTYPE html>
-{% load static %}
-<html>
-<head>
-    <title>Dashboard - Startup Simulator</title>
-    <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <h1>{{ company.name }} Dashboard</h1>
-    <p>Funds: ${{ company.funds }}</p>
-    <p>Revenue: ${{ company.revenue }}</p>
-    <p>Turn: {{ turn }}</p>
+{% extends 'game/base.html' %}
 
-    <h2>Financial Overview</h2>
-    <canvas id="financialChart" width="400" height="200"></canvas>
+{% block title %}Dashboard - Startup Simulator{% endblock %}
 
-    <h2>Project Progress</h2>
-    <canvas id="projectChart" width="400" height="200"></canvas>
+{% block extra_css %}
+<style>
+    /* Add any dashboard-specific styles here */
+</style>
+{% endblock %}
 
-    <a href="{% url 'game_loop' %}">Back to Game</a>
+{% block content %}
+<h2>{{ company.name }} Dashboard</h2>
+<p>Funds: ${{ company.funds }}</p>
+<p>Revenue: ${{ company.revenue }}</p>
+<p>Turn: {{ turn }}</p>
 
-    <script>
-        // Financial Chart
-        var financialCtx = document.getElementById('financialChart').getContext('2d');
-        var financialChart = new Chart(financialCtx, {
-            type: 'line',
-            data: {
-                labels: {{ turn_numbers|safe }},
-                datasets: [{
-                    label: 'Funds',
-                    data: {{ funds_history|safe }},
-                    borderColor: 'blue',
-                    fill: false
-                }, {
-                    label: 'Revenue',
-                    data: {{ revenue_history|safe }},
-                    borderColor: 'green',
-                    fill: false
-                }]
+<h3>Financial Overview</h3>
+<canvas id="financialChart" width="400" height="200"></canvas>
+
+<h3>Project Progress</h3>
+<canvas id="projectChart" width="400" height="200"></canvas>
+
+<a href="{% url 'game_loop' %}">Back to Game</a>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Financial Chart
+    var financialCtx = document.getElementById('financialChart').getContext('2d');
+    var financialChart = new Chart(financialCtx, {
+        type: 'line',
+        data: {
+            labels: {{ turn_numbers|safe }},
+            datasets: [{
+                label: 'Funds',
+                data: {{ funds_history|safe }},
+                borderColor: 'blue',
+                fill: false
+            }, {
+                label: 'Revenue',
+                data: {{ revenue_history|safe }},
+                borderColor: 'green',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'Financial History'
             },
-            options: {
-                responsive: true,
-                title: {
-                    display: true,
-                    text: 'Financial History'
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Turn'
+                    }
                 },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Turn'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Amount ($)'
-                        }
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Amount ($)'
                     }
                 }
             }
-        });
+        }
+    });
 
-        // Project Progress Chart
-        var projectCtx = document.getElementById('projectChart').getContext('2d');
-        var projectChart = new Chart(projectCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ project_names|safe }},
-                datasets: [{
-                    label: 'Completed Features',
-                    data: {{ completed_features|safe }},
-                    backgroundColor: 'green'
-                }, {
-                    label: 'Incomplete Features',
-                    data: {{ incomplete_features|safe }},
-                    backgroundColor: 'red'
-                }]
+    // Project Progress Chart
+    var projectCtx = document.getElementById('projectChart').getContext('2d');
+    var projectChart = new Chart(projectCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ project_names|safe }},
+            datasets: [{
+                label: 'Completed Features',
+                data: {{ completed_features|safe }},
+                backgroundColor: 'green'
+            }, {
+                label: 'Incomplete Features',
+                data: {{ incomplete_features|safe }},
+                backgroundColor: 'red'
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'Project Progress'
             },
-            options: {
-                responsive: true,
-                title: {
-                    display: true,
-                    text: 'Project Progress'
+            scales: {
+                x: {
+                    stacked: true,
                 },
-                scales: {
-                    x: {
-                        stacked: true,
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        stepSize: 1,
-                        title: {
-                            display: true,
-                            text: 'Number of Features'
-                        }
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    stepSize: 1,
+                    title: {
+                        display: true,
+                        text: 'Number of Features'
                     }
                 }
             }
-        });
-    </script>
-</body>
-</html>
+        }
+    });
+</script>
+{% endblock %}
