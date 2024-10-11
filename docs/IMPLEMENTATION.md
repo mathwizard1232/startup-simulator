@@ -132,4 +132,23 @@ This document outlines the implementation plan for Startup Simulator, a business
 - Consider accessibility in UI design (screen reader-friendly, avoid text in images)
 - Plan for future internationalization/localization (not in demo or MVP scope)
 
+## Future Considerations
+
+### Implement MVC Architecture
+- Consider refactoring the codebase to follow a more strict Model-View-Controller (MVC) architecture.
+- Move business logic from models and views into dedicated Controller classes.
+- This refactoring can be done gradually during MVP development or as a separate phase after MVP completion.
+- Benefits include:
+  - Improved separation of concerns
+  - More maintainable and testable code
+  - Easier to scale and add new features
+
+### Steps for MVC Implementation
+1. Create a new `controllers` directory
+2. Implement controller classes for each major component (e.g., EmployeeController, ProjectController, GameController)
+3. Move business logic from views and models to appropriate controllers
+4. Update views to use controllers for data manipulation and business logic
+5. Keep models focused on data structure and database interactions
+6. Refactor existing tests and add new ones for controllers
+
 This implementation plan provides a structured approach to developing Startup Simulator, focusing on creating a playable demo within a month and an MVP within two months. The post-launch roadmap offers direction for future development while remaining flexible to user feedback and new ideas.

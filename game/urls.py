@@ -1,6 +1,9 @@
 from django.urls import path
-from .views import (StartGameView, GameLoopView, HireEmployeeView, CreateProjectView, ManageProjectView, DecisionMakingView, 
-EndGameView, AssignEmployeesView, DashboardView)
+from .game_views import StartGameView, GameLoopView, EndGameView
+from .employee_views import HireEmployeeView
+from .project_views import CreateProjectView, ManageProjectView, AssignEmployeesView
+from .decision_views import DecisionMakingView
+from .dashboard_views import DashboardView
 
 urlpatterns = [
     path('', StartGameView.as_view(), name='start_game'),
