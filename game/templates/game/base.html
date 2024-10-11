@@ -7,15 +7,43 @@
     <title>{% block title %}Startup Simulator{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
     {% block extra_css %}{% endblock %}
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+        }
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            font-weight: bold;
+            font-size: 1.2em;
+            line-height: 1;
+        }
+        nav ul {
+            display: flex;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        nav ul li {
+            margin-left: 20px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Startup Simulator</h1>
+        <div class="logo">
+            <span>Startup</span>
+            <span>Simulator</span>
+        </div>
         <nav>
             <ul>
                 <li><a href="{% url 'game_loop' %}">Game</a></li>
                 <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <!-- Add more navigation items as needed -->
             </ul>
         </nav>
     </header>
