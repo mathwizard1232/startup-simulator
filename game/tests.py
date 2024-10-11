@@ -262,6 +262,9 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
                 self.hire_employee()
             except Exception as e:
                 print(f"No more employees can be hired or an error occurred during hiring: {e}")
+                # Navigate back to the game loop page
+                self.driver.get(f'{self.live_server_url}/game/game/')
+                print("Returned to game loop after hiring attempt failed")
                 break  # Break the loop if we can't hire more employees
 
 if __name__ == '__main__':
