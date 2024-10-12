@@ -1,16 +1,16 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models.company import Company
-from .models.bug import Bug
+from ..models.company import Company
+from ..models.bug import Bug
+from ..utils import get_company_or_redirect, generate_random_bug
 import random
 
 class DecisionMakingView(View):
     def get(self, request):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
 
-        company = Company.objects.get(id=company_id)
         projects = company.projects.all()
         employees = company.employees.all()
 
@@ -23,12 +23,10 @@ class DecisionMakingView(View):
         return render(request, 'game/decision_making.html', context)
 
     def post(self, request):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
 
-        company = Company.objects.get(id=company_id)
-        
         # Process micromanagement decisions
         status_report_frequency = request.POST.get('status_report_frequency')
         overtime_policy = request.POST.get('overtime_policy')
@@ -38,7 +36,6 @@ class DecisionMakingView(View):
         company.overtime_policy = overtime_policy
         company.save()
 
-        # Apply effects of decisions
         self.apply_decision_effects(company, status_report_frequency, overtime_policy)
 
         return redirect('game_loop')
@@ -62,22 +59,17 @@ class DecisionMakingView(View):
             if overtime_policy == 'mandatory':
                 employee.productivity += 15
                 employee.morale -= 10
-                self.increase_bug_probability(company, 0.2)
+                self.increase_bug_probability(company, 20)
             elif overtime_policy == 'optional':
                 employee.productivity += 5
                 employee.morale -= 2
-                self.increase_bug_probability(company, 0.1)
+                self.increase_bug_probability(company, 10)
 
             employee.save()
 
-    def increase_bug_probability(self, company, factor):
+    def increase_bug_probability(self, company, bug_chance):
         projects = company.projects.all()
         for project in projects:
             features = project.features.all()
             for feature in features:
-                if random.random() < factor:
-                    Bug.objects.create(
-                        description=f"New bug in {feature.name}",
-                        project=project,
-                        state='UNDETECTED'
-                    )
+                generate_random_bug(project, feature, bug_chance)

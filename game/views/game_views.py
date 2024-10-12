@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models.company import Company
-from .models.project import Project
-from .models.bug import Bug
+from ..models.company import Company
+from ..models.project import Project
+from ..models.bug import Bug
 import json
 from decimal import Decimal
 import random
+from ..utils import generate_random_bug, progress_feature, fix_detected_bugs
 
 class StartGameView(View):
     def get(self, request):
@@ -119,6 +120,7 @@ class GameLoopView(View):
         return True  # Return True to indicate the game should continue
 
     def process_project(self, project):
+        #TODO: we should eventually have an employee on one feature at a time
         employees = project.employees.all()
         if not employees:
             return  # No progress if no employees assigned
@@ -127,31 +129,15 @@ class GameLoopView(View):
         progress_chance = min(total_skill * 5, 100)  # Cap at 100%
 
         for feature in project.features.exclude(state='COMPLETED'):
-            if random.randint(1, 100) <= progress_chance:
-                if feature.state == 'NOT_STARTED':
-                    feature.state = 'IN_PROGRESS'
-                    # Chance to introduce bugs during development
-                    if random.randint(1, 100) <= 30:  # 30% chance of creating a bug
-                        Bug.objects.create(project=project, feature=feature, description="Hidden bug", state='UNDETECTED')
-                elif feature.state == 'IN_PROGRESS':
-                    feature.state = 'TESTING'
-                elif feature.state == 'TESTING':
-                    # Chance to detect existing bugs
-                    for bug in feature.bugs.filter(state='UNDETECTED'):
-                        if random.randint(1, 100) <= progress_chance:
-                            bug.detected = True
-                            bug.save()
-                    
-                    if not feature.bugs.filter(state='DETECTED').exists():
-                        feature.state = 'COMPLETED'
+            # Can always start a new feature; otherwise attempt progress
+            if feature.state == 'NOT_STARTED':
+                feature.state = 'IN_PROGRESS'
+                generate_random_bug(project, feature, 100 - progress_chance)
                 feature.save()
-        # Fix detected bugs
-        for bug in Bug.objects.filter(feature__project=project, state='DETECTED'):
-            if random.randint(1, 100) <= progress_chance:
-                # Chance to introduce new bug while fixing
-                if random.randint(1, 100) <= 10:  # 10% chance of creating a new bug
-                    Bug.objects.create(project=bug.project, feature=bug.feature, description="Bug introduced during fix", state='UNDETECTED')
-                bug.delete()
+            else:
+                progress_feature(feature, progress_chance)
+
+        fix_detected_bugs(project, progress_chance)
 
         project.save()
 

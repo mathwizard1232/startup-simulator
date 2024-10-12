@@ -1,9 +1,9 @@
 from django.urls import path
-from .game_views import StartGameView, GameLoopView, EndGameView
-from .employee_views import HireEmployeeView
-from .project_views import CreateProjectView, ManageProjectView, AssignEmployeesView
-from .decision_views import DecisionMakingView
-from .dashboard_views import DashboardView
+from .views.game_views import StartGameView, GameLoopView, EndGameView
+from .views.employee_views import HireEmployeeView
+from .views.project_views import CreateProjectView, ManageProjectView, AssignEmployeesView
+from .views.decision_views import DecisionMakingView
+from .views.dashboard_views import DashboardView
 
 urlpatterns = [
     path('', StartGameView.as_view(), name='start_game'),

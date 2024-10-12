@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models.company import Company
+from ..models.company import Company
 import json
 
 class DashboardView(View):
