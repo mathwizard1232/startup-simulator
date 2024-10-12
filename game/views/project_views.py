@@ -7,6 +7,7 @@ from ..models.feature import Feature
 from ..models.bug import Bug
 from ..utils import get_company_or_redirect
 from ..forms.project_form import CreateProjectForm
+from ..forms.assign_employees_form import AssignEmployeesForm
 
 class CreateProjectView(View):
     def get(self, request):
@@ -80,34 +81,24 @@ class ManageProjectView(View):
 
 class AssignEmployeesView(View):
     def get(self, request, project_id):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
-
-        company = Company.objects.get(id=company_id)
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
+        
         project = get_object_or_404(Project, id=project_id, company=company)
-        employees = company.employees.all()
-        assigned_employees = project.employees.all()
-
-        return render(request, 'game/assign_employees.html', {
-            'company': company,
-            'project': project,
-            'employees': employees,
-            'assigned_employees': assigned_employees,
-        })
+        form = AssignEmployeesForm(company=company, project=project)
+        return render(request, 'game/assign_employees.html', {'form': form, 'project': project})
 
     def post(self, request, project_id):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
-
-        company = Company.objects.get(id=company_id)
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
+        
         project = get_object_or_404(Project, id=project_id, company=company)
-
-        selected_employee_ids = request.POST.getlist('employees')
-        project.employees.clear()
-        for employee_id in selected_employee_ids:
-            employee = get_object_or_404(Employee, id=employee_id, company=company)
-            project.employees.add(employee)
-
-        return redirect('manage_project', project_id=project_id)
+        form = AssignEmployeesForm(request.POST, company=company, project=project)
+        if form.is_valid():
+            assigned_employees = form.cleaned_data['employees']
+            project.employees.set(assigned_employees)
+            return redirect('manage_project', project_id=project.id)
+        
+        return render(request, 'game/assign_employees.html', {'form': form, 'project': project})
