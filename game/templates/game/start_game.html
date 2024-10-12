@@ -3,21 +3,10 @@
 {% block title %}Start New Game - Startup Simulator{% endblock %}
 
 {% block content %}
-<h2>Found a New Startup</h2>
+<h2>Start a New Game</h2>
 <form method="post">
     {% csrf_token %}
-    <label for="company_name">Company Name:</label>
-    <input type="text" id="company_name" name="company_name" required>
-    
-    <label for="industry">Industry:</label>
-    <select id="industry" name="industry" required>
-        <option value="FINTECH">Fintech</option>
-        <option value="GAME_DEV">Game Development</option>
-    </select>
-    
+    {{ form.as_p }}
     <button type="submit">Start Game</button>
 </form>
-{% if error %}
-<p class="error">{{ error }}</p>
-{% endif %}
 {% endblock %}

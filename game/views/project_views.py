@@ -6,38 +6,37 @@ from ..models.employee import Employee
 from ..models.feature import Feature
 from ..models.bug import Bug
 from ..utils import get_company_or_redirect
+from ..forms.project_form import CreateProjectForm
 
 class CreateProjectView(View):
     def get(self, request):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
         
-        company = Company.objects.get(id=company_id)
-        return render(request, 'game/create_project.html', {'company': company})
+        form = CreateProjectForm()
+        return render(request, 'game/create_project.html', {'company': company, 'form': form})
 
     def post(self, request):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
         
-        company = Company.objects.get(id=company_id)
-        project_name = request.POST.get('project_name')
-        project_description = request.POST.get('project_description')
-        
-        project = Project.objects.create(
-            name=project_name,
-            description=project_description,
-            company=company
-        )
+        form = CreateProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.company = company
+            project.save()
 
-        # Create initial features
-        feature_names = ['Login System (Authn/Authz systems)', 'Admin Panel']
-        for name in feature_names:
-            Feature.objects.create(name=name, project=project)
-        project.generate_industry_specific_features()
+            # Create initial features
+            feature_names = ['Login System (Authn/Authz systems)', 'Admin Panel']
+            for name in feature_names:
+                Feature.objects.create(name=name, project=project)
+            project.generate_industry_specific_features()
+            
+            return redirect('game_loop')
         
-        return redirect('game_loop')
+        return render(request, 'game/create_project.html', {'company': company, 'form': form})
 
 class ManageProjectView(View):
     def get(self, request, project_id):

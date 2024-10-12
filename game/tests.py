@@ -143,12 +143,12 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
         start_project_button.click()
         print("Clicked create project button")
 
-        self.wait.until(EC.presence_of_element_located((By.ID, 'project_name')))
+        self.wait.until(EC.presence_of_element_located((By.ID, 'id_name')))
         print("Create project page loaded")
 
-        project_name = self.driver.find_element(By.ID, 'project_name')
+        project_name = self.driver.find_element(By.ID, 'id_name')
         project_name.send_keys(f"Project {random.randint(1, 1000)}")
-        project_description = self.driver.find_element(By.ID, 'project_description')
+        project_description = self.driver.find_element(By.ID, 'id_description')
         project_description.send_keys("This is a test project description.")
 
         submit_button = self.wait.until(
@@ -224,13 +224,13 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
         print(f"Current URL: {self.driver.current_url}")
 
         company_name_field = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'company_name'))
+            EC.presence_of_element_located((By.ID, 'id_name'))
         )
         company_name_field.send_keys(company_name)
         print("Entered company name")
 
         industry_select = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'industry'))
+            EC.presence_of_element_located((By.ID, 'id_industry'))
         )
         Select(industry_select).select_by_visible_text(industry)
         print("Selected industry")

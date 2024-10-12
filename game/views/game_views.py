@@ -7,29 +7,23 @@ import json
 from decimal import Decimal
 import random
 from ..utils import generate_random_bug, progress_feature, fix_detected_bugs
+from ..forms.start_game_form import StartGameForm
 
 class StartGameView(View):
     def get(self, request):
-        return render(request, 'game/start_game.html')
+        form = StartGameForm()
+        return render(request, 'game/start_game.html', {'form': form})
 
     def post(self, request):
-        company_name = request.POST.get('company_name')
-        initial_funds = 100000  # $100,000 initial funding
-
-        industry = request.POST.get('industry')
-        
-        if not company_name or not industry:
-            return render(request, 'game/start_game.html', {'error': 'Please provide both company name and industry.'})
-
-        company = Company.objects.create(
-            name=company_name,
-            funds=initial_funds,  # Starting funds
-            industry=industry
-        )
-        request.session['company_id'] = company.id
-        request.session['turn'] = 1
-
-        return redirect('game_loop')
+        form = StartGameForm(request.POST)
+        if form.is_valid():
+            company = form.save(commit=False)
+            company.funds = Decimal('100000')  # $100,000 initial funding
+            company.save()
+            request.session['company_id'] = company.id
+            request.session['turn'] = 1
+            return redirect('game_loop')
+        return render(request, 'game/start_game.html', {'form': form})
 
 class GameLoopView(View):
     def get(self, request):
