@@ -4,6 +4,7 @@ from ..models.company import Company
 from ..models.bug import Bug
 from ..utils import get_company_or_redirect, generate_random_bug
 import random
+from ..forms.decision_making_form import DecisionMakingForm
 
 class DecisionMakingView(View):
     def get(self, request):
@@ -11,15 +12,14 @@ class DecisionMakingView(View):
         if redirect_response:
             return redirect_response
 
-        projects = company.projects.all()
-        employees = company.employees.all()
-
+        form = DecisionMakingForm(initial={
+            'status_report_frequency': company.status_report_frequency,
+            'overtime_policy': company.overtime_policy
+        })
         context = {
             'company': company,
-            'projects': projects,
-            'employees': employees,
+            'form': form,
         }
-
         return render(request, 'game/decision_making.html', context)
 
     def post(self, request):
@@ -27,18 +27,20 @@ class DecisionMakingView(View):
         if redirect_response:
             return redirect_response
 
-        # Process micromanagement decisions
-        status_report_frequency = request.POST.get('status_report_frequency')
-        overtime_policy = request.POST.get('overtime_policy')
+        form = DecisionMakingForm(request.POST)
+        if form.is_valid():
+            status_report_frequency = form.cleaned_data['status_report_frequency']
+            overtime_policy = form.cleaned_data['overtime_policy']
 
-        # Update company policies
-        company.status_report_frequency = status_report_frequency
-        company.overtime_policy = overtime_policy
-        company.save()
+            company.status_report_frequency = status_report_frequency
+            company.overtime_policy = overtime_policy
+            company.save()
 
-        self.apply_decision_effects(company, status_report_frequency, overtime_policy)
+            self.apply_decision_effects(company, status_report_frequency, overtime_policy)
 
-        return redirect('game_loop')
+            return redirect('game_loop')
+
+        return render(request, 'game/decision_making.html', {'company': company, 'form': form})
 
     def apply_decision_effects(self, company, status_report_frequency, overtime_policy):
         employees = company.employees.all()
