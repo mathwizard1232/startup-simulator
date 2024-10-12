@@ -124,8 +124,12 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
         hire_button.click()
         print("Clicked hire button")
 
-        self.wait.until(EC.presence_of_element_located((By.ID, 'fast_worker')))
+        self.wait.until(EC.presence_of_element_located((By.ID, 'id_employee_type_1')))
         print("Hire page loaded")
+
+        fast_worker_radio = self.driver.find_element(By.ID, 'id_employee_type_1')
+        fast_worker_radio.click()
+        print("Selected fast worker")
 
         submit_button = self.wait.until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))

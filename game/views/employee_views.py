@@ -2,55 +2,56 @@ from django.shortcuts import render, redirect
 from django.views import View
 from ..models.company import Company
 from ..models.employee import Employee
+from ..utils import get_company_or_redirect
+from ..forms.hire_employee_form import HireEmployeeForm
 import random
 from decimal import Decimal
 
 class HireEmployeeView(View):
     def get(self, request):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
-
-        company = Company.objects.get(id=company_id)
-        return render(request, 'game/hire_employee.html', {'company': company})
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
+        
+        form = HireEmployeeForm()
+        return render(request, 'game/hire_employee.html', {'company': company, 'form': form})
 
     def post(self, request):
-        company_id = request.session.get('company_id')
-        if not company_id:
-            return redirect('start_game')
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
+        
+        form = HireEmployeeForm(request.POST)
+        if form.is_valid():
+            employee_type = form.cleaned_data['employee_type']
+            
+            if employee_type == 'perfectionist':
+                salary = Decimal('80000')
+                skill_level = random.randint(7, 10)
+                is_perfectionist = True
+            else:  # fast_worker
+                salary = Decimal('60000')
+                skill_level = random.randint(4, 7)
+                is_perfectionist = False
 
-        company = Company.objects.get(id=company_id)
-        employee_type = request.POST.get('employee_type')
+            weekly_salary = salary / Decimal('52')  # Calculate weekly salary
 
-        if employee_type == 'perfectionist':
-            is_perfectionist = True
-            skill_level = random.randint(7, 10)
-            salary = random.randint(80000, 120000)
-        else:
-            is_perfectionist = False
-            skill_level = random.randint(5, 8)
-            salary = random.randint(60000, 90000)
+            if company.funds < weekly_salary:
+                form.add_error(None, "Not enough funds to hire this employee.")
+                return render(request, 'game/hire_employee.html', {'company': company, 'form': form})
 
-        # Calculate the first week's salary
-        weekly_salary = Decimal(salary) / Decimal('52')
+            employee = Employee.objects.create(
+                company=company,
+                name=f"Employee {company.employees.count() + 1}",
+                salary=salary,
+                skill_level=skill_level,
+                is_perfectionist=is_perfectionist,
+                morale=random.randint(80, 100),
+                productivity=random.randint(80, 100)
+            )
+            company.funds -= weekly_salary
+            company.save()
 
-        # Check if the company can afford the first week's salary
-        if company.funds < weekly_salary:
-            return render(request, 'game/hire_employee.html', {
-                'company': company,
-                'error': "Not enough funds to hire this employee."
-            })
-
-        employee = Employee.objects.create(
-            name=f"Employee {company.employees.count() + 1}",
-            is_perfectionist=is_perfectionist,
-            skill_level=skill_level,
-            salary=salary,
-            company=company
-        )
-
-        # Deduct the first week's salary from the company's funds
-        company.funds -= weekly_salary
-        company.save()
-
-        return redirect('game_loop')
+            return redirect('game_loop')
+        
+        return render(request, 'game/hire_employee.html', {'company': company, 'form': form})
