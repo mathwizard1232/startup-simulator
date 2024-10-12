@@ -44,12 +44,18 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
             self.start_new_game('Test Company', 'Fintech')
 
             # Play through the game
-            for turn in range(200):  # Assume 200 turns to reach win condition by single project
+            for turn in range(200):  # Assume 200 turns to reach win condition
                 print(f"Turn {turn + 1}")
                 
                 # Make decisions only on the first turn
                 if turn == 0:
                     self.make_turn_decisions(first_turn=True)
+                
+                # Create another project and assign employee after 5 turns
+                # Since we're doing months, this is plenty of time.
+                if turn % 5 == 0:
+                    self.create_project()
+                    self.assign_employee_to_project()
                 
                 # End the current turn
                 self.end_turn()
@@ -74,8 +80,9 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
             # Start a new game
             self.start_new_game('Test Company', 'Fintech')
 
-            # Hire employees until we can't afford more
-            self.hire_employees_until_broke()
+            # We can just hire ten and be done with it.
+            for _ in range(10):
+                self.hire_employee()
 
             # Advance turns until we lose or reach a maximum number of turns
             max_turns = 50
@@ -165,11 +172,16 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
         print("Redirected back to game loop after project creation")
 
     def assign_employee_to_project(self):
-        manage_project_link = self.wait.until(
-            EC.element_to_be_clickable((By.LINK_TEXT, 'Manage'))
-        )
+        # Find the last created project
+        project_elements = self.driver.find_elements(By.XPATH, "//li[contains(text(), 'Project')]")
+        if not project_elements:
+            raise Exception("No projects found")
+        last_project = project_elements[-1]
+        
+        # Find the 'Manage' link within this project's element
+        manage_project_link = last_project.find_element(By.LINK_TEXT, 'Manage')
         manage_project_link.click()
-        print("Clicked manage project link")
+        print("Clicked manage project link for the last created project")
 
         assign_employees_link = self.wait.until(
             EC.element_to_be_clickable((By.LINK_TEXT, 'Assign Employees'))
@@ -261,11 +273,11 @@ class StartupSimulatorTest(StaticLiveServerTestCase):
 
     def end_turn(self):
         end_turn_button = self.wait.until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[name="action"][value="end_month"]'))
         )
-        print("Found end turn button")
+        print("Found end month button")
         end_turn_button.click()
-        print("Clicked end turn button")
+        print("Clicked end month button")
 
     def hire_employees_until_broke(self):
         while True:

@@ -3,6 +3,9 @@
 {% block title %}Startup Simulator - Turn {{ turn }}{% endblock %}
 
 {% block content %}
+<h1>Startup Simulator</h1>
+<p>Current Date: {{ company.current_date|date:"F d, Y" }}</p>
+
 <h2>{{ company.name }} - {{ company.get_industry_display }} - Turn {{ turn }}</h2>
 <p>Funds: ${{ company.funds }}</p>
 
@@ -31,6 +34,8 @@
 
 <form method="post">
     {% csrf_token %}
-    <button type="submit">End Turn</button>
+    <button type="submit" name="action" value="end_day">Call it a day</button>
+    <button type="submit" name="action" value="end_week">Take a week off</button>
+    <button type="submit" name="action" value="end_month">Go fishing for a month</button>
 </form>
 {% endblock %}

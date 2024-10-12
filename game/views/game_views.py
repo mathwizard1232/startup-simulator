@@ -60,10 +60,20 @@ class GameLoopView(View):
 
         company = Company.objects.get(id=company_id)
 
-        # Process turn actions
-        game_continues = self.process_turn(company)
+        action = request.POST.get('action')
+        if action == 'end_day':
+            self.advance_time(company, 1)
+        elif action == 'end_week':
+            self.advance_time(company, 5) # 5 business days per week
+        elif action == 'end_month':
+            self.advance_time(company, 23) # 23ish business days per month
 
-        if not game_continues:
+        # Increment turn count and update session
+        turn = request.session.get('turn', 1)
+        turn += 1
+        request.session['turn'] = turn
+
+        if company.game_status == 'LOST':
             return redirect('end_game')
 
         # Check win condition
@@ -72,22 +82,33 @@ class GameLoopView(View):
             company.save()
             return redirect('end_game')
 
-        # Process turn actions here
-        # For now, just increment the turn counter
-        request.session['turn'] = request.session.get('turn', 1) + 1
         return redirect('game_loop')
+
+    def advance_time(self, company, days):
+        for _ in range(days):
+            self.process_turn(company)
+            if company.game_status == 'LOST':
+                break
+        
+        # Ensure we end on a business day
+        while not company.is_workday:
+            self.process_turn(company)
+            if company.game_status == 'LOST':
+                break
 
     def process_turn(self, company):
         """
-        Process a single turn for the company.
-        Returns True if the game should continue, False if the company has lost.
+        Process a single day for the company.
         """
-        if not self.deduct_salaries(company):
-            return False
-
-        self.process_projects(company)
+        company.advance_time(1)
         self.generate_revenue(company)
+        continue_game = self.deduct_salaries(company)
         self.update_historical_data(company)
+        if not continue_game:
+            return False
+        
+        if company.is_workday:
+            self.process_projects(company)
         
         return True
 
@@ -97,7 +118,7 @@ class GameLoopView(View):
         Returns False if company funds become negative, True otherwise.
         """
         total_salary = sum(employee.salary for employee in company.employees.all())
-        company.funds -= Decimal(total_salary) / Decimal('52')  # Assuming weekly turns and annual salary
+        company.funds -= Decimal(total_salary) / Decimal('365')  # Daily salary
 
         if company.funds < 0:
             company.game_status = 'LOST'
@@ -115,13 +136,13 @@ class GameLoopView(View):
 
     def generate_revenue(self, company):
         """
-        Generate revenue from completed projects.
+        Generate daily revenue from completed projects.
         """
         for project in company.projects.all():
             if project.state == 'COMPLETED':
-                revenue = Decimal('10000') * Decimal(project.complexity)
-                company.funds += revenue
-                company.revenue += revenue
+                daily_revenue = (Decimal('50000') * Decimal(project.complexity)) / Decimal('365')
+                company.funds += daily_revenue
+                company.revenue += daily_revenue
         company.save()
 
     def update_historical_data(self, company):

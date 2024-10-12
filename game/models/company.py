@@ -1,4 +1,7 @@
 from django.db import models
+from django.utils import timezone
+from datetime import datetime, timedelta
+import holidays
 
 class Company(models.Model):
     INDUSTRY_CHOICES = [
@@ -27,6 +30,25 @@ class Company(models.Model):
     revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     funds_history = models.TextField(default='[]')
     revenue_history = models.TextField(default='[]')
+    current_date = models.DateTimeField(default=timezone.now)
+
+    @property
+    def is_workday(self):
+        us_holidays = holidays.US()
+        
+        # Check if it's a weekend
+        if self.current_date.weekday() >= 5:
+            return False
+        
+        # Check if it's a holiday
+        if self.current_date.date() in us_holidays:
+            return False
+        
+        return True
+
+    def advance_time(self, days):
+        self.current_date += timedelta(days=days)
+        self.save()
 
     def __str__(self):
         return self.name
