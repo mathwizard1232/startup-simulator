@@ -123,11 +123,12 @@ class GameLoopView(View):
         """
         Generate revenue from completed projects.
         """
-        completed_projects = company.projects.filter(state='COMPLETED')
-        for project in completed_projects:
-            revenue = Decimal('10000') * Decimal(project.complexity)
-            company.funds += revenue
-            company.revenue += revenue
+        for project in company.projects.all():
+            if project.state == 'COMPLETED':
+                revenue = Decimal('10000') * Decimal(project.complexity)
+                company.funds += revenue
+                company.revenue += revenue
+        company.save()
 
     def update_historical_data(self, company):
         """
