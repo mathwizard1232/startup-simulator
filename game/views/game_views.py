@@ -84,32 +84,55 @@ class GameLoopView(View):
         return redirect('game_loop')
 
     def process_turn(self, company):
-        # Deduct employee salaries
+        """
+        Process a single turn for the company.
+        Returns True if the game should continue, False if the company has lost.
+        """
+        if not self.deduct_salaries(company):
+            return False
+
+        self.process_projects(company)
+        self.generate_revenue(company)
+        self.update_historical_data(company)
+        
+        return True
+
+    def deduct_salaries(self, company):
+        """
+        Deduct employee salaries from company funds.
+        Returns False if company funds become negative, True otherwise.
+        """
         total_salary = sum(employee.salary for employee in company.employees.all())
         company.funds -= Decimal(total_salary) / Decimal('52')  # Assuming weekly turns and annual salary
 
-        # Check if funds are negative
         if company.funds < 0:
             company.game_status = 'LOST'
             company.save()
-            return False  # Return False to indicate game over
+            return False
+        return True
 
-        # Process projects
+    def process_projects(self, company):
+        """
+        Process all projects with assigned employees.
+        """
         for project in company.projects.all():
             if project.employees.exists():
                 self.process_project(project)
-            else:
-                # Optionally, you could add some penalty for unattended projects
-                pass
 
-        # Generate revenue from completed projects
-        completed_projects = [project for project in company.projects.all() if project.state == 'COMPLETED']
+    def generate_revenue(self, company):
+        """
+        Generate revenue from completed projects.
+        """
+        completed_projects = company.projects.filter(state='COMPLETED')
         for project in completed_projects:
             revenue = Decimal('10000') * Decimal(project.complexity)
             company.funds += revenue
             company.revenue += revenue
 
-        # Update historical data
+    def update_historical_data(self, company):
+        """
+        Update historical data for funds and revenue.
+        """
         funds_history = json.loads(company.funds_history)
         revenue_history = json.loads(company.revenue_history)
         funds_history.append(float(company.funds))
@@ -117,7 +140,6 @@ class GameLoopView(View):
         company.funds_history = json.dumps(funds_history)
         company.revenue_history = json.dumps(revenue_history)
         company.save()
-        return True  # Return True to indicate the game should continue
 
     def process_project(self, project):
         #TODO: we should eventually have an employee on one feature at a time
@@ -125,21 +147,30 @@ class GameLoopView(View):
         if not employees:
             return  # No progress if no employees assigned
 
-        total_skill = sum(employee.skill_level for employee in employees)
-        progress_chance = min(total_skill * 5, 100)  # Cap at 100%
+        progress_chance = self.calculate_progress_chance(employees)
 
         for feature in project.features.exclude(state='COMPLETED'):
-            # Can always start a new feature; otherwise attempt progress
-            if feature.state == 'NOT_STARTED':
-                feature.state = 'IN_PROGRESS'
-                generate_random_bug(project, feature, 100 - progress_chance)
-                feature.save()
-            else:
-                progress_feature(feature, progress_chance)
+            self.process_feature(feature, project, progress_chance)
 
         fix_detected_bugs(project, progress_chance)
-
         project.save()
+
+    def calculate_progress_chance(self, employees):
+        total_skill = sum(employee.skill_level for employee in employees)
+        # TODO: diminishing returns when combining employees, scaled by teamwork
+        # Especially bad if number of teammates exceeds number of features
+        return min(total_skill * 5, 95)  # Cap at 95% - always leave room for bugs
+
+    def process_feature(self, feature, project, progress_chance):
+        if feature.state == 'NOT_STARTED':
+            self.start_feature(feature, project, progress_chance)
+        else:
+            progress_feature(feature, progress_chance)
+
+    def start_feature(self, feature, project, progress_chance):
+        feature.state = 'IN_PROGRESS'
+        generate_random_bug(project, feature, 100 - progress_chance)
+        feature.save()
 
 class EndGameView(View):
     def get(self, request):
