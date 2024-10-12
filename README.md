@@ -36,6 +36,7 @@ free to run latest or to check out the latest tag to see the demo in a working v
 
 The project follows a standard Django structure with some custom organization:
 
+```
 startup_simulator/
 │
 ├── game/
@@ -82,7 +83,7 @@ startup_simulator/
 │
 ├── manage.py
 └── README.md
-
+```
 
 ## Key Components
 
