@@ -158,24 +158,41 @@ class GameLoopView(View):
         company.save()
 
     def process_project(self, project):
-        #TODO: we should eventually have an employee on one feature at a time
         employees = project.employees.all()
-        if not employees:
-            return  # No progress if no employees assigned
+        features = project.features.filter(state__in=['NOT_STARTED', 'IN_PROGRESS', 'TESTING'])
 
-        progress_chance = self.calculate_progress_chance(employees)
-
-        for feature in project.features.exclude(state='COMPLETED'):
+        # Don't get stuck if assigned employees but no features to work on
+        if not features:
+            # TODO: still could have employees work on detecting / fixing bugs
+            return
+        
+        # Determine effective skill for each feature
+        feature_skills = {}
+        remaining_employees = list(employees)
+        
+        for feature in features:
+            if not remaining_employees:
+                break
+            
+            feature_skills[feature] = remaining_employees.pop(0).skill_level
+        
+        # Distribute remaining employees
+        while remaining_employees:
+            for feature in feature_skills:
+                if not remaining_employees:
+                    break
+                current_skill = feature_skills[feature]
+                additional_skill = remaining_employees.pop(0).skill_level
+                # Cap at 14 skill level - higher than individual but still imperfect
+                feature_skills[feature] = max(14, current_skill + 0.5 * additional_skill)
+        
+        # Process features
+        for feature, skill in feature_skills.items():
+            progress_chance = min(skill * 5, 95)  # Cap at 95% - always leave room for bugs
             self.process_feature(feature, project, progress_chance)
-
-        fix_detected_bugs(project, progress_chance)
-        project.save()
-
-    def calculate_progress_chance(self, employees):
-        total_skill = sum(employee.skill_level for employee in employees)
-        # TODO: diminishing returns when combining employees, scaled by teamwork
-        # Especially bad if number of teammates exceeds number of features
-        return min(total_skill * 5, 95)  # Cap at 95% - always leave room for bugs
+        
+        # TODO: updates if the project is completed?
+        # Currently this is a computed property, so result not stored.
 
     def process_feature(self, feature, project, progress_chance):
         if feature.state == 'NOT_STARTED':

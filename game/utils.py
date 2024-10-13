@@ -39,33 +39,6 @@ def generate_random_bug(project, feature, bug_chance):
             state='UNDETECTED'
         )
 
-def progress_feature(feature, progress_chance):
-    """
-    Progresses a feature's state based on the given progress chance.
-    
-    Args:
-    feature: The Feature instance.
-    progress_chance: The probability of progressing the feature (0-100).
-    
-    Returns:
-    None
-    """
-    if random.randint(1, 100) <= progress_chance:
-        if feature.state == 'NOT_STARTED':
-            feature.state = 'IN_PROGRESS'
-        elif feature.state == 'IN_PROGRESS':
-            feature.state = 'TESTING'
-        elif feature.state == 'TESTING':
-            # Chance to detect existing bugs
-            for bug in feature.bugs.filter(state='UNDETECTED'):
-                if random.randint(1, 100) <= progress_chance:
-                    bug.state = 'DETECTED'
-                    bug.save()
-            
-            if not feature.bugs.filter(state='DETECTED').exists():
-                feature.state = 'COMPLETED'
-        feature.save()
-
 def fix_detected_bugs(project, progress_chance):
     """
     Attempts to fix detected bugs in a project.
@@ -83,3 +56,34 @@ def fix_detected_bugs(project, progress_chance):
         if random.randint(1, 100) <= progress_chance:
             generate_random_bug(bug.project, bug.feature, 100 - progress_chance)
             bug.delete()
+
+def progress_feature(feature, progress_chance):
+    """
+    Progresses a feature's state based on the given progress chance.
+    
+    Args:
+    feature: The Feature instance.
+    progress_chance: The probability of progressing the feature (0-100).
+    
+    Returns:
+    None
+    """
+    if random.randint(1, 100) <= progress_chance:
+        if feature.state == 'NOT_STARTED':
+            feature.state = 'IN_PROGRESS'
+        elif feature.state == 'IN_PROGRESS':
+            feature.state = 'TESTING'
+        elif feature.state == 'TESTING':
+            # First try to fix detected bugs
+            fix_detected_bugs(feature.project, progress_chance)
+
+            # Chance to detect existing bugs
+            for bug in feature.bugs.filter(state='UNDETECTED'):
+                if random.randint(1, 100) <= progress_chance:
+                    bug.state = 'DETECTED'
+                    bug.save()
+            
+            # If no bugs are detected, we'll call testing done
+            if not feature.bugs.filter(state='DETECTED').exists():
+                feature.state = 'COMPLETED'
+        feature.save()
