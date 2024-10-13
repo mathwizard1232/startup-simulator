@@ -17,3 +17,12 @@
 
 "The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle." - Steve Jobs
 
+"In the startup world, every bug is a feature waiting to be discovered." - Startup Simulator Development Team
+
+"The best startups are like good code: elegant, efficient, and prone to unexpected crashes." - Anonymous Developer
+
+"Venture capital is just early access for companies." - Startup Simulator Marketing Team
+
+"Remember, in this game, as in real startups, the only truly unwinnable scenario is the one where you stop playing." - Startup Simulator Loading Screen Tip
+
+"They say time is money, but in Startup Simulator, money is time... until you run out of both." - Startup Simulator Player Review [Not actually a real player review, given that the AI can't actually play the game.]
