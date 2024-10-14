@@ -6,6 +6,7 @@ from ..utils import get_company_or_redirect
 from ..forms.hire_employee_form import HireEmployeeForm
 import random
 from decimal import Decimal
+from ..name_generator import generate_name
 
 class HireEmployeeView(View):
     def get(self, request):
@@ -42,7 +43,7 @@ class HireEmployeeView(View):
 
             employee = Employee.objects.create(
                 company=company,
-                name=f"Employee {company.employees.count() + 1}",
+                name=f"{generate_name()} (Employee #{company.employees.count() + 1})",
                 salary=salary,
                 skill_level=skill_level,
                 is_perfectionist=is_perfectionist,
