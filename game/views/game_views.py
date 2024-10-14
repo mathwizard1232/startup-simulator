@@ -174,7 +174,7 @@ class GameLoopView(View):
             if not remaining_employees:
                 break
             
-            feature_skills[feature] = remaining_employees.pop(0).skill_level
+            feature_skills[feature] = remaining_employees.pop(0).coding_accuracy
         
         # Distribute remaining employees
         while remaining_employees:
@@ -182,7 +182,7 @@ class GameLoopView(View):
                 if not remaining_employees:
                     break
                 current_skill = feature_skills[feature]
-                additional_skill = remaining_employees.pop(0).skill_level
+                additional_skill = remaining_employees.pop(0).coding_accuracy
                 # Cap at 14 skill level - higher than individual but still imperfect
                 feature_skills[feature] = max(14, current_skill + 0.5 * additional_skill)
         

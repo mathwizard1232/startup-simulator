@@ -4,7 +4,6 @@ from ..models.company import Company
 from ..models.employee import Employee
 from ..utils import get_company_or_redirect
 from ..forms.hire_employee_form import HireEmployeeForm
-import random
 from decimal import Decimal
 from ..name_generator import generate_name
 
@@ -26,14 +25,10 @@ class HireEmployeeView(View):
         if form.is_valid():
             employee_type = form.cleaned_data['employee_type']
             
-            if employee_type == 'perfectionist':
+            if employee_type == 'PERFECTIONIST':
                 salary = Decimal('80000')
-                skill_level = random.randint(7, 10)
-                is_perfectionist = True
-            else:  # fast_worker
+            else:  # FAST_WORKER
                 salary = Decimal('60000')
-                skill_level = random.randint(4, 7)
-                is_perfectionist = False
 
             weekly_salary = salary / Decimal('52')  # Calculate weekly salary
 
@@ -44,12 +39,10 @@ class HireEmployeeView(View):
             employee = Employee.objects.create(
                 company=company,
                 name=f"{generate_name()} (Employee #{company.employees.count() + 1})",
-                salary=salary,
-                skill_level=skill_level,
-                is_perfectionist=is_perfectionist,
-                morale=random.randint(80, 100),
-                productivity=random.randint(80, 100)
+                employee_type=employee_type,
+                salary=salary
             )
+            employee.generate_initial_skills()
             company.funds -= weekly_salary
             company.save()
 
