@@ -11,3 +11,4 @@ Various notes that aren't in other docs yet. Append for writes. Remove when adde
 same project and/or feature. Employees on the same project will interfere slightly; employees on the same feature will interfere more (this is presuming that all employees are programmers; later on there will be other types of employees who will interfere less or more depending on their role).
 - Add an automatic code formatter like `black` to the project.
 - After a long time jump, show a summary of events that happened while the player was away (and project progress).
+- Refine `update_skill_perception` logic per notes there.

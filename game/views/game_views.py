@@ -8,6 +8,8 @@ from decimal import Decimal
 import random
 from ..utils import generate_random_bug, progress_feature, fix_detected_bugs
 from ..forms.start_game_form import StartGameForm
+from game.utils.skill_utils import update_employee_perceptions
+from django.contrib import messages
 
 class StartGameView(View):
     def get(self, request):
@@ -186,19 +188,32 @@ class GameLoopView(View):
                 # Cap at 14 skill level - higher than individual but still imperfect
                 feature_skills[feature] = max(14, current_skill + 0.5 * additional_skill)
         
-        # Process features
+        total_progress = 0
+        total_bugs = 0
         for feature, skill in feature_skills.items():
-            progress_chance = min(skill * 5, 95)  # Cap at 95% - always leave room for bugs
-            self.process_feature(feature, project, progress_chance)
+            progress_chance = min(skill * 5, 95)
+            progress, bugs = self.process_feature(feature, project, progress_chance)
+            total_progress += progress
+            total_bugs += bugs
         
+        # Calculate project success based on progress and bugs
+        project_success = total_progress / len(features) - (total_bugs * 0.1)
+        
+        # Update employee perceptions
+        for employee in employees:
+            updates = update_employee_perceptions(employee, project_success, total_bugs, len(employees))
+            if updates:
+                messages.info(self.request, f"{employee.name}'s perceived {', '.join(updates)} has been updated.")
+
         # TODO: updates if the project is completed?
         # Currently this is a computed property, so result not stored.
 
     def process_feature(self, feature, project, progress_chance):
         if feature.state == 'NOT_STARTED':
             self.start_feature(feature, project, progress_chance)
+            return 1, 0  # We can always start and no bugs are detected
         else:
-            progress_feature(feature, progress_chance)
+            return progress_feature(feature, progress_chance)
 
     def start_feature(self, feature, project, progress_chance):
         feature.state = 'IN_PROGRESS'

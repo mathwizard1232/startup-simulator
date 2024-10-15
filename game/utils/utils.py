@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
-from .models.company import Company
-from .models.bug import Bug
+from ..models.company import Company
+from ..models.bug import Bug
 import random
 
 def get_company_or_redirect(request):
@@ -48,14 +48,17 @@ def fix_detected_bugs(project, progress_chance):
     progress_chance: The probability of fixing a bug (0-100).
     
     Returns:
-    None
+    int: The number of bugs fixed.
     
     TODO: Implement a system to keep a record of fixed bugs on a given project.
     """
+    bugs_fixed = 0
     for bug in Bug.objects.filter(feature__project=project, state='DETECTED'):
         if random.randint(1, 100) <= progress_chance:
             generate_random_bug(bug.project, bug.feature, 100 - progress_chance)
             bug.delete()
+            bugs_fixed += 1
+    return bugs_fixed
 
 def progress_feature(feature, progress_chance):
     """
@@ -66,24 +69,40 @@ def progress_feature(feature, progress_chance):
     progress_chance: The probability of progressing the feature (0-100).
     
     Returns:
-    None
+    tuple: (progress, bugs)
     """
+    progress = 0
+    bugs = 0
+
+    if feature.state == 'IN_PROGRESS':
+        # Generate new bugs potentially while building
+        generate_random_bug(feature.project, feature, 100 - progress_chance)
+    
     if random.randint(1, 100) <= progress_chance:
+        initial_state = feature.state
         if feature.state == 'NOT_STARTED':
             feature.state = 'IN_PROGRESS'
         elif feature.state == 'IN_PROGRESS':
             feature.state = 'TESTING'
         elif feature.state == 'TESTING':
             # First try to fix detected bugs
-            fix_detected_bugs(feature.project, progress_chance)
+            bugs -= fix_detected_bugs(feature.project, progress_chance)
 
             # Chance to detect existing bugs
             for bug in feature.bugs.filter(state='UNDETECTED'):
                 if random.randint(1, 100) <= progress_chance:
                     bug.state = 'DETECTED'
                     bug.save()
+                    # Only count bugs that were detected
+                    bugs += 1
             
             # If no bugs are detected, we'll call testing done
             if not feature.bugs.filter(state='DETECTED').exists():
                 feature.state = 'COMPLETED'
+        
         feature.save()
+        
+        if feature.state != initial_state:
+            progress = 1
+    
+    return progress, bugs
