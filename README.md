@@ -8,12 +8,36 @@ The game will then simulate the growth of your startup, and you can watch as you
 
 Python/Django base, written using Cursor with Claude 3.5 Sonnet.
 
-## How to Play
+## Setup and Running the Game
 
-1. Clone the repository
-2. Run `pip install -r requirements.txt`
-3. Run `python manage.py runserver`
-4. Go to `http://localhost:8000` in your web browser
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/startup-simulator.git
+   cd startup-simulator
+   ```
+
+2. Set up a virtual environment:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+   ```
+
+3. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+4. Run migrations and start the server:
+   ```
+   ./run.sh
+   ```
+
+5. Access the game by opening a web browser and navigating to:
+   ```
+   http://localhost:8000
+   ```
+
+Now you're ready to play Startup Simulator! Good luck; have fun!
 
 
 ## Status
@@ -104,14 +128,6 @@ startup_simulator/
 - Industry-specific mechanics (Fintech and Game Development)
 - Decision-making system (micromanagement options)
 - Turn-based gameplay
-
-## Setup and Running the Game
-
-1. Clone the repository
-2. Install the required dependencies: `pip install -r requirements.txt`
-3. Run migrations: `python manage.py migrate`
-4. Start the development server: `python manage.py runserver`
-5. Access the game at `http://localhost:8000`
 
 ## Development
 
