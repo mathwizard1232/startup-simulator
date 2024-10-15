@@ -2,6 +2,9 @@ from django.shortcuts import redirect
 from ..models.company import Company
 from ..models.bug import Bug
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_company_or_redirect(request):
     """
@@ -14,8 +17,14 @@ def get_company_or_redirect(request):
     A tuple (Company, HttpResponseRedirect). If a company is found, the second element is None.
     If no company is found, the first element is None and the second is a redirect response.
     """
-    company_id = request.session.get('company_id')
+    # Take company_id from session, if not there, take it from the form post.
+    # This is primarily needed for testing, where we're posting form data directly
+    # rather than going through the usual channels.
+    # TODO: eventually this may be a security concern; think about this before production use
+    company_id = request.session.get('company_id') or request.POST.get('company_id')
+    logger.info(f"get_company_or_redirect called with company_id: {company_id}")
     if not company_id:
+        logger.info("get_company_or_redirect redirecting to start_game")
         return None, redirect('start_game')
     return Company.objects.get(id=company_id), None
 

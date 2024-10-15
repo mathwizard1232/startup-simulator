@@ -48,7 +48,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'game.profiler_middleware.ProfilerMiddleware',
+    # Profiler clutters console, so turned off until we need it again.
+#    'game.profiler_middleware.ProfilerMiddleware',
+    'game.error_logging_middleware.ErrorLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'startup_simulator.urls'
@@ -130,3 +132,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Try to remember to hook this up to display somewhere
 # And to increment it on releases (maybe add tagging?)
 VERSION = '0.0.1'
+
+# Add this at the end of the file
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'game': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

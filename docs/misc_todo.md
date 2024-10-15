@@ -12,3 +12,6 @@ same project and/or feature. Employees on the same project will interfere slight
 - Add an automatic code formatter like `black` to the project.
 - After a long time jump, show a summary of events that happened while the player was away (and project progress).
 - Refine `update_skill_perception` logic per notes there.
+- Fix decision making so it's not just instant application of effects.
+- Fix decision making (morale and productivity had gotten removed in a different change and broke it)
+- Fix `get_company_or_redirect` so that there's not a security vulnerability being able to just set company_id in the POST request to switch companies. (Fix before production use.)

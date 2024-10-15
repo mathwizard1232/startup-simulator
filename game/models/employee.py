@@ -41,6 +41,15 @@ class Employee(models.Model):
     perceived_debugging = models.CharField(max_length=20, default='unknown')
     perceived_teamwork = models.CharField(max_length=20, default='unknown')
 
+    morale = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        default=75
+    )
+    productivity = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        default=75
+    )
+
     def __str__(self):
         return f"{self.name} ({self.get_employee_type_display()})"
 
@@ -75,4 +84,12 @@ class Employee(models.Model):
         self.debugging = random.randint(1, 10)
         self.teamwork = random.randint(1, 10)
         self.update_perceived_skills()
+        self.save()
+
+    def calculate_productivity(self):
+        skill_average = (self.coding_speed + self.coding_accuracy + self.debugging + self.teamwork) / 4
+        return (skill_average * self.morale) / 100  # Productivity is a value between 0 and 10
+
+    def update_productivity(self):
+        self.productivity = self.calculate_productivity()
         self.save()

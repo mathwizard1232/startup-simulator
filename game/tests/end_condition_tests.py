@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 import random
 
-class StartupSimulatorTest(StaticLiveServerTestCase):
+class EndConditionsTestCase(StaticLiveServerTestCase):
     def setUp(self):
         # Configure ChromeOptions
         options = webdriver.ChromeOptions()
