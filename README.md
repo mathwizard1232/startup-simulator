@@ -12,7 +12,7 @@ Python/Django base, written using Cursor with Claude 3.5 Sonnet.
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/startup-simulator.git
+   git clone https://github.com/mathwizard1232/startup-simulator.git
    cd startup-simulator
    ```
 
