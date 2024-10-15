@@ -4,6 +4,9 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from ..name_generator import generate_name
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Employee(models.Model):
     EMPLOYEE_TYPES = [
@@ -87,8 +90,15 @@ class Employee(models.Model):
         self.save()
 
     def calculate_productivity(self):
+        logger.info(f"Calculating productivity for {self.name}")
         skill_average = (self.coding_speed + self.coding_accuracy + self.debugging + self.teamwork) / 4
-        return (skill_average * self.morale) / 100  # Productivity is a value between 0 and 10
+        logger.info(f"Skill average: {skill_average}; morale: {self.morale}")
+        # Productivity is a value between 0 and 100, while skills are a value between 0 and 10.
+        # Because morale is 0-100, and skills are 0-10, we need to divide by 10 to get a
+        # productivity value that scales correctly with morale.
+        productivity = (skill_average * self.morale) / 10
+        logger.info(f"Productivity: {productivity}")
+        return productivity
 
     def update_productivity(self):
         self.productivity = self.calculate_productivity()

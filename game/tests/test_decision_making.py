@@ -45,9 +45,10 @@ class DecisionMakingTestCase(TestCase):
                 # Refresh employee from database
                 self.employee.refresh_from_db()
                 
-                # Check that morale and productivity are within valid ranges
+                # Check that morale and productivity are within reasonable ranges
+                # Productivity shouldn't drop below 10 from these changes
                 self.assertTrue(1 <= self.employee.morale <= 100)
-                self.assertTrue(1 <= self.employee.productivity <= 100)
+                self.assertTrue(10 <= self.employee.productivity <= 100)
                 
                 # Check that productivity is calculated correctly
                 expected_productivity = self.employee.calculate_productivity()
