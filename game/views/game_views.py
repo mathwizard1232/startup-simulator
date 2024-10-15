@@ -170,14 +170,17 @@ class GameLoopView(View):
         
         # Determine effective skill for each feature
         feature_skills = {}
+        feature_productivity = {}
         remaining_employees = list(employees)
         
         for feature in features:
             if not remaining_employees:
                 break
-            
-            feature_skills[feature] = remaining_employees.pop(0).coding_accuracy
-        
+            employee = remaining_employees.pop(0)
+            feature_skills[feature] = employee.coding_accuracy
+            # For now we'll just use the first employee's productivity for the feature
+            # TODO: actually calculate feature productivity based on team skills
+            feature_productivity[feature] = employee.productivity
         # Distribute remaining employees
         while remaining_employees:
             for feature in feature_skills:
@@ -185,13 +188,13 @@ class GameLoopView(View):
                     break
                 current_skill = feature_skills[feature]
                 additional_skill = remaining_employees.pop(0).coding_accuracy
-                # Cap at 14 skill level - higher than individual but still imperfect
-                feature_skills[feature] = max(14, current_skill + 0.5 * additional_skill)
+                # Cap at 16 skill level - higher than individual but still imperfect
+                feature_skills[feature] = max(16, current_skill + 0.5 * additional_skill)
         
         total_progress = 0
         total_bugs = 0
         for feature, skill in feature_skills.items():
-            progress_chance = min(skill * 5, 95)
+            progress_chance = min(skill * 5 * feature_productivity[feature] / 100, 95)
             progress, bugs = self.process_feature(feature, project, progress_chance)
             total_progress += progress
             total_bugs += bugs

@@ -44,7 +44,7 @@ class EndConditionsTestCase(StaticLiveServerTestCase):
             self.start_new_game('Test Company', 'Fintech')
 
             # Play through the game
-            for turn in range(200):  # Assume 200 turns to reach win condition
+            for turn in range(300):  # Assume 300 turns max to reach win condition
                 print(f"Turn {turn + 1}")
                 
                 # Make decisions only on the first turn
@@ -53,7 +53,8 @@ class EndConditionsTestCase(StaticLiveServerTestCase):
                 
                 # Create another project and assign employee after 5 turns
                 # Since we're doing months, this is plenty of time.
-                if turn % 5 == 0:
+                # Updating to 10 because of the changes to productivity.
+                if turn % 10 == 0:
                     self.create_project()
                     self.assign_employee_to_project()
                 
