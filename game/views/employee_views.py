@@ -6,6 +6,11 @@ from ..utils import get_company_or_redirect
 from ..forms.hire_employee_form import HireEmployeeForm
 from decimal import Decimal
 from ..name_generator import generate_name
+from ..personality_traits import PERSONALITY_TRAITS
+import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 class HireEmployeeView(View):
     def get(self, request):
@@ -44,6 +49,12 @@ class HireEmployeeView(View):
             )
             employee.generate_initial_skills()
             company.funds -= weekly_salary
+            # Generate a random set of personality traits for the employee
+            num_traits = random.randint(1, 2)
+            traits = random.sample(list(PERSONALITY_TRAITS.keys()), num_traits)
+            employee.personality_traits_string = ','.join(traits)
+            employee.save()
+            logger.info(f"Hired employee {employee.name} with {employee.personality_traits} and {employee.coding_speed}, {employee.coding_accuracy}, {employee.debugging}, {employee.teamwork}")
             company.save()
 
             return redirect('game_loop')

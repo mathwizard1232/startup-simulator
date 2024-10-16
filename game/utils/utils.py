@@ -69,7 +69,7 @@ def fix_detected_bugs(project, progress_chance):
             bugs_fixed += 1
     return bugs_fixed
 
-def progress_feature(feature, progress_chance):
+def progress_feature(feature, progress_chance, bug_chance, debugging_chance):
     """
     Progresses a feature's state based on the given progress chance.
     
@@ -85,7 +85,7 @@ def progress_feature(feature, progress_chance):
 
     if feature.state == 'IN_PROGRESS':
         # Generate new bugs potentially while building
-        generate_random_bug(feature.project, feature, 100 - progress_chance)
+        generate_random_bug(feature.project, feature, bug_chance)
     
     if random.randint(1, 100) <= progress_chance:
         initial_state = feature.state
@@ -95,11 +95,11 @@ def progress_feature(feature, progress_chance):
             feature.state = 'TESTING'
         elif feature.state == 'TESTING':
             # First try to fix detected bugs
-            bugs -= fix_detected_bugs(feature.project, progress_chance)
+            bugs -= fix_detected_bugs(feature.project, debugging_chance)
 
             # Chance to detect existing bugs
             for bug in feature.bugs.filter(state='UNDETECTED'):
-                if random.randint(1, 100) <= progress_chance:
+                if random.randint(1, 100) <= debugging_chance:
                     bug.state = 'DETECTED'
                     bug.save()
                     # Only count bugs that were detected

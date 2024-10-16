@@ -10,6 +10,9 @@ from ..utils import generate_random_bug, progress_feature, fix_detected_bugs
 from ..forms.start_game_form import StartGameForm
 from game.utils.skill_utils import update_employee_perceptions
 from django.contrib import messages
+import logging
+
+logger = logging.getLogger(__name__)
 
 class StartGameView(View):
     def get(self, request):
@@ -169,33 +172,81 @@ class GameLoopView(View):
             return
         
         # Determine effective skill for each feature
-        feature_skills = {}
+        feature_speed = {}
+        feature_accuracy = {}
+        feature_debugging = {}
         feature_productivity = {}
+        feature_teamwork = {}
+        feature_traits = {}
         remaining_employees = list(employees)
         
+        # Assign an initial employee to each feature, if there are enough employees
         for feature in features:
             if not remaining_employees:
                 break
             employee = remaining_employees.pop(0)
-            feature_skills[feature] = employee.coding_accuracy
+            logger.info(f"Assigning employee {employee.name} with {employee.personality_traits} and {employee.coding_speed}, {employee.coding_accuracy}, {employee.debugging}, {employee.teamwork} to feature {feature.name}")
+            feature_speed[feature] = employee.coding_speed
+            feature_accuracy[feature] = employee.coding_accuracy
+            feature_debugging[feature] = employee.debugging
+            feature_teamwork[feature] = employee.teamwork
             # For now we'll just use the first employee's productivity for the feature
             # TODO: actually calculate feature productivity based on team skills
             feature_productivity[feature] = employee.productivity
+            feature_traits[feature] = employee.personality_traits
         # Distribute remaining employees
         while remaining_employees:
-            for feature in feature_skills:
+            for feature in feature_speed:
                 if not remaining_employees:
                     break
-                current_skill = feature_skills[feature]
-                additional_skill = remaining_employees.pop(0).coding_accuracy
+                current_speed = feature_speed[feature]
+                current_accuracy = feature_accuracy[feature]
+                current_debugging = feature_debugging[feature]
+                new_employee = remaining_employees.pop(0)
+                additional_speed = new_employee.coding_speed
+                additional_accuracy = new_employee.coding_accuracy
+                additional_debugging = new_employee.debugging
+                # Team's teamwork skill is the highest individual skill
+                teamwork = max(feature_teamwork[feature], new_employee.teamwork)
+                # Speed is the hardest to increase with more people
+                # Perfect teamwork allows 25% increase at most
+                speed_factor = Decimal(0.25) * Decimal(teamwork) / Decimal(10)
+                # Accuracy is easier to increase with more people
+                accuracy_factor = Decimal(0.5) * Decimal(teamwork) / Decimal(10)
+                debugging_factor = accuracy_factor
                 # Cap at 16 skill level - higher than individual but still imperfect
-                feature_skills[feature] = max(16, current_skill + 0.5 * additional_skill)
+                feature_speed[feature] = max(16, current_speed + speed_factor * additional_speed)
+                feature_accuracy[feature] = max(16, current_accuracy + accuracy_factor * additional_accuracy)
+                feature_debugging[feature] = max(16, current_debugging + debugging_factor * additional_debugging)
+                feature_traits[feature] = feature_traits[feature].append(new_employee.personality_traits)
         
         total_progress = 0
         total_bugs = 0
-        for feature, skill in feature_skills.items():
-            progress_chance = min(skill * 5 * feature_productivity[feature] / 100, 95)
-            progress, bugs = self.process_feature(feature, project, progress_chance)
+        for feature, speed_skill in feature_speed.items():
+            if 'meme_lord' in feature_traits[feature]:
+                feature_productivity[feature] += 10
+            # Always some chance not to make progress
+            logger.info(f"Feature {feature.name} has speed skill {speed_skill} and productivity {feature_productivity[feature]}")
+            progress_chance = min(speed_skill * 7.5 * feature_productivity[feature] / 100, 95)
+            # Always some chance to produce a bug
+            bug_chance = max(100 - feature_accuracy[feature] * 7.5, 5)
+            debugging_chance = min(feature_debugging[feature] * 7.5, 95)
+            if 'perfectionist' in feature_traits[feature]:
+                # Subtract 10% from bug chance if there's a perfectionist on the feature
+                bug_chance = max(bug_chance - 10, 5)
+                # But less likely to make progress
+                progress_chance *= 0.85
+            if 'rubber_duck_whisperer' in feature_traits[feature]:
+                debugging_chance += 15
+            if 'stack_overflow_junkie' in feature_traits[feature]:
+                # 50% chance to solve bugs instantly
+                # 10% chance to introduce new bugs
+                if random.randint(1, 100) <= 50:
+                    bugs = fix_detected_bugs(feature.project, 100)
+                elif random.randint(1, 100) <= 20:
+                    # Because only a 50% chance to evaluate above, there's a 10% chance overall
+                    generate_random_bug(feature.project, feature, 100)
+            progress, bugs = self.process_feature(feature=feature, project=project, progress_chance=progress_chance, bug_chance=bug_chance, debugging_chance=debugging_chance)
             total_progress += progress
             total_bugs += bugs
         
@@ -211,16 +262,17 @@ class GameLoopView(View):
         # TODO: updates if the project is completed?
         # Currently this is a computed property, so result not stored.
 
-    def process_feature(self, feature, project, progress_chance):
+    def process_feature(self, feature, project, progress_chance, bug_chance, debugging_chance):
+        logger.info(f"Processing feature {feature.name} with state {feature.state} and {progress_chance} progress chance, {bug_chance} bug chance, and {debugging_chance} debugging chance")
         if feature.state == 'NOT_STARTED':
-            self.start_feature(feature, project, progress_chance)
+            self.start_feature(feature, project, bug_chance=bug_chance)
             return 1, 0  # We can always start and no bugs are detected
         else:
-            return progress_feature(feature, progress_chance)
+            return progress_feature(feature=feature, progress_chance=progress_chance, bug_chance=bug_chance, debugging_chance=debugging_chance)
 
-    def start_feature(self, feature, project, progress_chance):
+    def start_feature(self, feature, project, bug_chance):
         feature.state = 'IN_PROGRESS'
-        generate_random_bug(project, feature, 100 - progress_chance)
+        generate_random_bug(project, feature, bug_chance)
         feature.save()
 
 class EndGameView(View):

@@ -27,6 +27,11 @@ Python/Django base, written using Cursor with Claude 3.5 Sonnet.
    pip install -r requirements.txt
    ```
 
+Note: if you have issues with psycopg2, you might try:
+```
+pip install psycopg2-binary
+```
+
 4. Run migrations and start the server:
    ```
    ./run.sh

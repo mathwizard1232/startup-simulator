@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from ..name_generator import generate_name
 import random
 import logging
+from django.contrib.postgres.fields import ArrayField
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +54,16 @@ class Employee(models.Model):
         default=75
     )
 
+    # defined in personality_traits.py
+    personality_traits_string = models.TextField(blank=True, default='')
+
     def __str__(self):
         return f"{self.name} ({self.get_employee_type_display()})"
+
+    @property
+    def personality_traits(self):
+        logger.info(f"Personality traits for {self.name}: {self.personality_traits_string}")
+        return self.personality_traits_string.split(',')
 
     @staticmethod
     def get_perceived_skill(skill_value):

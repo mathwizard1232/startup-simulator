@@ -15,3 +15,13 @@ same project and/or feature. Employees on the same project will interfere slight
 - Fix decision making so it's not just instant application of effects.
 - Fix decision making (morale and productivity had gotten removed in a different change and broke it)
 - Fix `get_company_or_redirect` so that there's not a security vulnerability being able to just set company_id in the POST request to switch companies. (Fix before production use.)
+- Eventually have gradual reveal of personality traits?
+- use a fixed seed for testing the game to avoid randomness in test outcomes
+
+Possibly (AI suggested, good enough to save but not certain if / when we'll do all of it):
+- Have an "assignment" screen that shows the player's current employees and allows them to be reassigned to different projects.
+- Have a "firing" screen that shows the player's current employees and allows them to be fired.
+- Have a "training" screen that shows the player's current employees and allows them to be trained.
+- Have a "promotion" screen that shows the player's current employees and allows them to be promoted.
+- Have a "demotion" screen that shows the player's current employees and allows them to be demoted.
+- Have a "transfer" screen that shows the player's current employees and allows them to be transferred to other projects.
