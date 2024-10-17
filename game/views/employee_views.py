@@ -9,7 +9,9 @@ from ..name_generator import generate_name
 from ..personality_traits import PERSONALITY_TRAITS
 import random
 import logging
-
+from datetime import timedelta
+from ..models.hiringprocess import HiringProcess
+from ..views.game_views import GameLoopView
 logger = logging.getLogger(__name__)
 
 class HireEmployeeView(View):
@@ -29,33 +31,32 @@ class HireEmployeeView(View):
         form = HireEmployeeForm(request.POST)
         if form.is_valid():
             employee_type = form.cleaned_data['employee_type']
+            hiring_process = form.cleaned_data['hiring_process']
             
-            if employee_type == 'PERFECTIONIST':
-                salary = Decimal('80000')
-            else:  # FAST_WORKER
-                salary = Decimal('60000')
-
-            weekly_salary = salary / Decimal('52')  # Calculate weekly salary
-
-            if company.funds < weekly_salary:
-                form.add_error(None, "Not enough funds to hire this employee.")
-                return render(request, 'game/hire_employee.html', {'company': company, 'form': form})
-
-            employee = Employee.objects.create(
+            # Calculate hire date based on hiring process
+            current_date = company.current_date
+            if hiring_process == 'resume_only':
+                hire_date = current_date
+            elif hiring_process == 'phone_interview':
+                hire_date = current_date + timedelta(days=1)
+            elif hiring_process == 'live_coding':
+                hire_date = current_date + timedelta(days=7)
+            elif hiring_process == 'full_interview':
+                hire_date = current_date + timedelta(days=30)
+            
+            # Create a hiring process object
+            HiringProcess.objects.create(
                 company=company,
-                name=f"{generate_name()} (Employee #{company.employees.count() + 1})",
                 employee_type=employee_type,
-                salary=salary
+                process_type=hiring_process,
+                start_date=current_date,
+                expected_hire_date=hire_date
             )
-            employee.generate_initial_skills()
-            company.funds -= weekly_salary
-            # Generate a random set of personality traits for the employee
-            num_traits = random.randint(1, 2)
-            traits = random.sample(list(PERSONALITY_TRAITS.keys()), num_traits)
-            employee.personality_traits_string = ','.join(traits)
-            employee.save()
-            logger.info(f"Hired employee {employee.name} with {employee.personality_traits} and {employee.coding_speed}, {employee.coding_accuracy}, {employee.debugging}, {employee.teamwork}")
-            company.save()
+            logger.info(f"Hiring process created of type: {hiring_process} for {employee_type}")
+
+            # process the immediate hiring if resume_only
+            if hiring_process == 'resume_only':
+                GameLoopView.process_hiring(company)
 
             return redirect('game_loop')
         

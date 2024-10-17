@@ -11,6 +11,8 @@ from ..forms.start_game_form import StartGameForm
 from game.utils.skill_utils import update_employee_perceptions
 from django.contrib import messages
 import logging
+from ..models.hiringprocess import HiringProcess
+from ..utils.employee_utils import create_employee
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,8 @@ class GameLoopView(View):
                 return redirect('start_game')
 
         company = Company.objects.get(id=company_id)
+        hiring_processes = HiringProcess.objects.filter(company=company).exclude(employee__isnull=False)
+        logger.info(f"Number of hiring processes: {hiring_processes.count()}")
         employees = company.employees.all()
         projects = company.projects.all()
         turn = request.session.get('turn', 1)
@@ -54,6 +58,7 @@ class GameLoopView(View):
             'employees': employees,
             'projects': projects,
             'turn': turn,
+            'hiring_processes': hiring_processes,
         }
 
         return render(request, 'game/game_loop.html', context)
@@ -101,6 +106,17 @@ class GameLoopView(View):
             if company.game_status == 'LOST':
                 break
 
+    @classmethod  # class method to allow hiring to call directly for resume_only
+    def process_hiring(cls, company):
+        completed_hiring = HiringProcess.objects.filter(
+            company=company,
+            employee__isnull=True,
+            expected_hire_date__lte=company.current_date
+        )
+        
+        for hiring in completed_hiring:
+            create_employee(hiring)
+
     def process_turn(self, company):
         """
         Process a single day for the company.
@@ -108,6 +124,7 @@ class GameLoopView(View):
         company.advance_time(1)
         self.generate_revenue(company)
         continue_game = self.deduct_salaries(company)
+        self.process_hiring(company)
         self.update_historical_data(company)
         if not continue_game:
             return False

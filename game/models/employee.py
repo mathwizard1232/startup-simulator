@@ -56,6 +56,7 @@ class Employee(models.Model):
 
     # defined in personality_traits.py
     personality_traits_string = models.TextField(blank=True, default='')
+    perceived_personality_traits_string = models.TextField(blank=True, default='')
 
     def __str__(self):
         return f"{self.name} ({self.get_employee_type_display()})"
@@ -64,6 +65,11 @@ class Employee(models.Model):
     def personality_traits(self):
         logger.info(f"Personality traits for {self.name}: {self.personality_traits_string}")
         return self.personality_traits_string.split(',')
+
+    @property
+    def perceived_personality_traits(self):
+        logger.info(f"Perceived personality traits for {self.name}: {self.perceived_personality_traits_string}")
+        return self.perceived_personality_traits_string.split(',')
 
     @staticmethod
     def get_perceived_skill(skill_value):
@@ -78,14 +84,29 @@ class Employee(models.Model):
         else:
             return 'excellent'
 
-    def update_perceived_skills(self):
-        self.perceived_coding_speed = self.get_perceived_skill(self.coding_speed)
-        self.perceived_coding_accuracy = self.get_perceived_skill(self.coding_accuracy)
-        self.perceived_debugging = self.get_perceived_skill(self.debugging)
-        self.perceived_teamwork = self.get_perceived_skill(self.teamwork)
+    def update_perceived_skills(self, process_type):
+        if process_type == 'full_interview':
+            self.perceived_coding_speed = self.get_perceived_skill(self.coding_speed)
+            self.perceived_coding_accuracy = self.get_perceived_skill(self.coding_accuracy)
+            self.perceived_debugging = self.get_perceived_skill(self.debugging)
+            self.perceived_teamwork = self.get_perceived_skill(self.teamwork)
+        elif process_type == 'live_coding':
+            self.perceived_coding_speed = self.get_perceived_skill(self.coding_speed)
+            self.perceived_coding_accuracy = self.get_perceived_skill(self.coding_accuracy)
+        elif process_type == 'phone_interview':
+            self.perceived_teamwork = self.get_perceived_skill(self.teamwork)
         self.save()
 
-    def generate_initial_skills(self):
+    def update_perceived_personality_traits(self, process_type):
+        if process_type == 'full_interview' or process_type == 'phone_interview':
+            self.perceived_personality_traits_string = self.personality_traits_string
+        if process_type == 'resume':
+            if random.randint(1, 100) <= 50:
+                # 50% chance to reveal a single personality trait
+                self.perceived_personality_traits_string = self.personality_traits[0]
+        self.save()
+
+    def generate_initial_skills(self, process_type):
         if self.employee_type == 'FAST_WORKER':
             self.coding_speed = random.randint(6, 10)
             self.coding_accuracy = random.randint(1, 7)
@@ -95,7 +116,7 @@ class Employee(models.Model):
         
         self.debugging = random.randint(1, 10)
         self.teamwork = random.randint(1, 10)
-        self.update_perceived_skills()
+        self.update_perceived_skills(process_type)
         self.save()
 
     def calculate_productivity(self):

@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1>Startup Simulator</h1>
-<p>Current Date: {{ company.current_date|date:"F d, Y" }}</p>
+<p>Current Date: {{ company.current_date|date:"l, F d, Y" }}</p>
 
 <h2>{{ company.name }} - {{ company.get_industry_display }} - Turn {{ turn }}</h2>
 <p>Funds: ${{ company.funds }}</p>
@@ -15,6 +15,15 @@
     <li>{{ employee.name }} - Coding Accuracy: {{ employee.perceived_coding_accuracy }}</li>
 {% empty %}
     <li>No employees yet.</li>
+{% endfor %}
+</ul>
+
+<h3>In-Progress Hiring</h3>
+<ul>
+{% for hiring in hiring_processes %}
+    <li>{{ hiring.employee_type }} - {{ hiring.process_type }} - Expected hire date: {{ hiring.expected_hire_date|date:"F d, Y" }}</li>
+{% empty %}
+    <li>No ongoing hiring processes.</li>
 {% endfor %}
 </ul>
 

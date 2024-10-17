@@ -17,6 +17,8 @@ same project and/or feature. Employees on the same project will interfere slight
 - Fix `get_company_or_redirect` so that there's not a security vulnerability being able to just set company_id in the POST request to switch companies. (Fix before production use.)
 - Eventually have gradual reveal of personality traits?
 - use a fixed seed for testing the game to avoid randomness in test outcomes
+- We need to eventually have a realistic customer / contract aspect which will give us feedback mechanisms for the features and quality in terms of whether the player can sell the software or not.
+- We need to have competitor companies who can beat the player to market. There should be a realistic first mover advantage, while the "second mover" needs to be able to beat the first-to-market in terms of features and quality (or in better sales, but that's not so much the focus of this game)
 
 Possibly (AI suggested, good enough to save but not certain if / when we'll do all of it):
 - Have an "assignment" screen that shows the player's current employees and allows them to be reassigned to different projects.
