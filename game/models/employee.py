@@ -6,6 +6,7 @@ from ..name_generator import generate_name
 import random
 import logging
 from django.contrib.postgres.fields import ArrayField
+from ..utils.skill_utils import get_perceived_skill
 
 logger = logging.getLogger(__name__)
 
@@ -71,18 +72,8 @@ class Employee(models.Model):
         logger.info(f"Perceived personality traits for {self.name}: {self.perceived_personality_traits_string}")
         return self.perceived_personality_traits_string.split(',')
 
-    @staticmethod
-    def get_perceived_skill(skill_value):
-        if skill_value <= 2:
-            return 'poor'
-        elif skill_value <= 4:
-            return 'below average'
-        elif skill_value <= 6:
-            return 'average'
-        elif skill_value <= 8:
-            return 'good'
-        else:
-            return 'excellent'
+    def get_perceived_skill(self, skill_value):
+        return get_perceived_skill(skill_value)
 
     def update_perceived_skills(self, process_type):
         if process_type == 'full_interview':

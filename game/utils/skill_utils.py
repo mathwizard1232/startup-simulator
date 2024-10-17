@@ -1,26 +1,53 @@
 import random
 
+def get_perceived_skill(skill_value):
+    # TODO: this is supposed to be fuzzed instead of deterministic, to have chance of misperception
+    if skill_value <= 2:
+        return 'poor'
+    elif skill_value <= 4:
+        return 'below average'
+    elif skill_value <= 6:
+        return 'average'
+    elif skill_value <= 8:
+        return 'good'
+    else:
+        return 'excellent'
+
 def update_skill_perception(employee, skill_name, performance_modifier):
-    # TODO: make this logic more sensible
-    # Right now, the performance modifier affects the chance of updating,
-    # but not the direction. Instead, it should push the perception in that
-    # direction, but not necessarily make it more likely.
-    # Probably pass through performance_modifier to `get_perceived_skill`,
-    # and then have the performance affect the perception.
-    # Also, we probably want to send in the current perceived skill.
-    # So get_perceived_skill should be a function of the actual skill,
-    # the current perception, and whether the event is positive or negative.
     actual_skill = getattr(employee, skill_name)
     perceived_skill = getattr(employee, f'perceived_{skill_name}')
     
-    # Chance to update perception based on performance
-    if random.random() < 0.3 + (performance_modifier * 0.1):
-        new_perception = employee.get_perceived_skill(actual_skill)
-        if new_perception != perceived_skill:
-            setattr(employee, f'perceived_{skill_name}', new_perception)
-            employee.save()
-            return True
+    # Calculate the new perception based on actual skill, current perception, and performance
+    new_perception = get_updated_perception(actual_skill, perceived_skill, performance_modifier)
+    
+    if new_perception != perceived_skill:
+        setattr(employee, f'perceived_{skill_name}', new_perception)
+        employee.save()
+        return True
     return False
+
+def get_updated_perception(actual_skill, current_perception, performance_modifier):
+    if current_perception == 'unknown':
+        current_perception = get_perceived_skill(actual_skill)
+    skill_levels = ['poor', 'below average', 'average', 'good', 'excellent']
+    current_index = skill_levels.index(current_perception)
+    
+    # Determine the direction of change based on performance
+    if performance_modifier > 0:
+        direction = 1
+    elif performance_modifier < 0:
+        direction = -1
+    else:
+        return current_perception
+    
+    # Calculate the chance of perception change
+    change_chance = abs(performance_modifier) * 10  # 10% chance per unit of performance_modifier
+    
+    if random.randint(1, 100) <= change_chance:
+        new_index = max(0, min(len(skill_levels) - 1, current_index + direction))
+        return skill_levels[new_index]
+    
+    return current_perception
 
 def update_employee_perceptions(employee, project_success, bug_count, teamwork_rating):
     updates = []
@@ -40,3 +67,17 @@ def update_employee_perceptions(employee, project_success, bug_count, teamwork_r
         updates.append('teamwork')
     
     return updates
+
+def reveal_personality_trait(employee):
+    actual_traits = set(employee.personality_traits)
+    perceived_traits = set(employee.perceived_personality_traits)
+    hidden_traits = actual_traits - perceived_traits
+    
+    if hidden_traits:
+        trait_to_reveal = random.choice(list(hidden_traits))
+        perceived_traits.add(trait_to_reveal)
+        employee.perceived_personality_traits_string = ','.join(perceived_traits)
+        employee.save()
+        return trait_to_reveal
+    
+    return None

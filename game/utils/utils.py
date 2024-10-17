@@ -3,6 +3,8 @@ from ..models.company import Company
 from ..models.bug import Bug
 import random
 import logging
+from .skill_utils import reveal_personality_trait
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +110,9 @@ def progress_feature(feature, progress_chance, bug_chance, debugging_chance):
             # If no bugs are detected, we'll call testing done
             if not feature.bugs.filter(state='DETECTED').exists():
                 feature.state = 'COMPLETED'
+                # When completing a project, reveal a hidden trait, if any, for each employee
+                for employee in feature.project.employees.all():
+                    reveal_personality_trait(employee)
         
         feature.save()
         
