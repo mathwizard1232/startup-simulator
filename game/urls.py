@@ -1,6 +1,6 @@
 from django.urls import path
 from .views.game_views import StartGameView, GameLoopView, EndGameView
-from .views.employee_views import HireEmployeeView
+from .views.employee_views import HireEmployeeView, EmployeeProfileView
 from .views.project_views import CreateProjectView, ManageProjectView, AssignEmployeesView
 from .views.decision_views import DecisionMakingView
 from .views.dashboard_views import DashboardView
@@ -13,6 +13,7 @@ urlpatterns = [
     
     # Employee management
     path('hire/', HireEmployeeView.as_view(), name='hire_employee'),
+    path('employee/<int:employee_id>/', EmployeeProfileView.as_view(), name='employee_profile'),
     
     # Project management
     path('create_project/', CreateProjectView.as_view(), name='create_project'),

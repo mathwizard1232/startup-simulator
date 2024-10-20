@@ -20,6 +20,7 @@ same project and/or feature. Employees on the same project will interfere slight
 - We need to eventually have a realistic customer / contract aspect which will give us feedback mechanisms for the features and quality in terms of whether the player can sell the software or not.
 - We need to have competitor companies who can beat the player to market. There should be a realistic first mover advantage, while the "second mover" needs to be able to beat the first-to-market in terms of features and quality (or in better sales, but that's not so much the focus of this game)
 - Make sure that initial perceived skills have a chance to be wrong.
+- Tweak skills / personality discovery to be slower?
 
 Possibly (AI suggested, good enough to save but not certain if / when we'll do all of it):
 - Have an "assignment" screen that shows the player's current employees and allows them to be reassigned to different projects.

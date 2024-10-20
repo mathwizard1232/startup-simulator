@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from ..models.company import Company
 from ..models.employee import Employee
@@ -61,3 +61,26 @@ class HireEmployeeView(View):
             return redirect('game_loop')
         
         return render(request, 'game/hire_employee.html', {'company': company, 'form': form})
+
+class EmployeeProfileView(View):
+    def get(self, request, employee_id):
+        company, redirect_response = get_company_or_redirect(request)
+        if redirect_response:
+            return redirect_response
+        
+        employee = get_object_or_404(Employee, id=employee_id, company=company)
+        
+        context = {
+            'employee': employee,
+            'company': company,
+            'perceived_skills': {
+                'Coding Speed': employee.perceived_coding_speed,
+                'Coding Accuracy': employee.perceived_coding_accuracy,
+                'Debugging': employee.perceived_debugging,
+                'Teamwork': employee.perceived_teamwork
+            },
+            'personality_traits': employee.perceived_personality_traits_human_readable,
+            'current_project': employee.project
+        }
+        
+        return render(request, 'game/employee_profile.html', context)

@@ -12,7 +12,7 @@
 <h3>Employees</h3>
 <ul>
 {% for employee in employees %}
-    <li>{{ employee.name }} - Coding Accuracy: {{ employee.perceived_coding_accuracy }}</li>
+    <li><a href="{% url 'employee_profile' employee.id %}">{{ employee.name }}</a> - Coding Accuracy: {{ employee.perceived_coding_accuracy }}</li>
 {% empty %}
     <li>No employees yet.</li>
 {% endfor %}

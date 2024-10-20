@@ -27,7 +27,7 @@
 <h3>Assigned Employees:</h3>
 <ul>
 {% for employee in assigned_employees %}
-    <li>{{ employee.name }} - Skill Level: {{ employee.skill_level }}</li>
+    <li>{{ employee.name }} - Coding Accuracy: {{ employee.perceived_coding_accuracy }}</li>
 {% empty %}
     <li>No employees assigned yet.</li>
 {% endfor %}

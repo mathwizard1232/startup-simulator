@@ -72,6 +72,10 @@ class Employee(models.Model):
         logger.info(f"Perceived personality traits for {self.name}: {self.perceived_personality_traits_string}")
         return self.perceived_personality_traits_string.split(',')
 
+    @property
+    def perceived_personality_traits_human_readable(self):
+        return [' '.join(word.capitalize() for word in trait.split('_')) for trait in self.perceived_personality_traits]
+
     def get_perceived_skill(self, skill_value):
         return get_perceived_skill(skill_value)
 
