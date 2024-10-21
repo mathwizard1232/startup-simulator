@@ -5,10 +5,91 @@
 {% block content %}
 <h2>Create a New Project</h2>
 <p>Company Funds: ${{ company.funds }}</p>
-<form method="post">
+<form method="post" id="create-project-form">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.non_field_errors }}
+    {{ form.industry }}  <!-- This is the hidden field -->
+    <div>
+        {{ form.name.label_tag }} {{ form.name }}
+        {{ form.name.errors }}
+    </div>
+    <div>
+        {{ form.description.label_tag }} {{ form.description }}
+        {{ form.description.errors }}
+    </div>
+    <div>
+        {{ form.project_type.label_tag }} {{ form.project_type }}
+        {{ form.project_type.errors }}
+    </div>
+    <div>
+        {{ form.deadline_type.label_tag }} {{ form.deadline_type }}
+        {{ form.deadline_type.errors }}
+    </div>
+    <div id="features-section">
+        <h3>Required Features</h3>
+        <div id="required-features">
+            {{ form.required_features }}
+            {{ form.required_features.errors }}
+        </div>
+        <h3>Optional Features</h3>
+        <div id="optional-features">
+            {{ form.optional_features }}
+            {{ form.optional_features.errors }}
+        </div>
+    </div>
     <button type="submit">Create Project</button>
 </form>
 <a href="{% url 'game_loop' %}">Back to Game</a>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('create-project-form');
+        const requiredFeatures = document.querySelectorAll('#required-features input[type="checkbox"]');
+        const optionalFeatures = document.querySelectorAll('#optional-features input[type="checkbox"]');
+
+        // Make required features checked and not uncheckable
+        requiredFeatures.forEach(function(checkbox) {
+            checkbox.checked = true;
+            checkbox.disabled = true;
+        });
+
+        // Add complexity selection for required features
+        requiredFeatures.forEach(function(checkbox) {
+            addComplexitySelect(checkbox);
+        });
+
+        // Handle optional features
+        optionalFeatures.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    addComplexitySelect(this);
+                } else {
+                    removeComplexitySelect(this);
+                }
+            });
+        });
+
+        function addComplexitySelect(checkbox) {
+            const complexityField = document.getElementById(`id_${checkbox.value}_complexity`);
+            if (!complexityField) {
+                const complexitySelect = document.createElement('select');
+                complexitySelect.id = `id_${checkbox.value}_complexity`;
+                complexitySelect.name = `${checkbox.value}_complexity`;
+                complexitySelect.innerHTML = `
+                    <option value="SHODDY">Shoddy</option>
+                    <option value="STANDARD" selected>Standard Practice</option>
+                    <option value="ADVANCED">Advanced</option>
+                `;
+                checkbox.parentNode.appendChild(complexitySelect);
+            }
+        }
+
+        function removeComplexitySelect(checkbox) {
+            const complexityField = document.getElementById(`id_${checkbox.value}_complexity`);
+            if (complexityField) {
+                complexityField.remove();
+            }
+        }
+    });
+</script>
 {% endblock %}

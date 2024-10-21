@@ -8,6 +8,9 @@ from ..models.bug import Bug
 from ..utils import get_company_or_redirect
 from ..forms.project_form import CreateProjectForm
 from ..forms.assign_employees_form import AssignEmployeesForm
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CreateProjectView(View):
     def get(self, request):
@@ -15,7 +18,7 @@ class CreateProjectView(View):
         if redirect_response:
             return redirect_response
         
-        form = CreateProjectForm()
+        form = CreateProjectForm(initial={'industry': company.industry})
         return render(request, 'game/create_project.html', {'company': company, 'form': form})
 
     def post(self, request):
@@ -23,19 +26,32 @@ class CreateProjectView(View):
         if redirect_response:
             return redirect_response
         
-        form = CreateProjectForm(request.POST)
+        form = CreateProjectForm(request.POST, initial={'industry': company.industry})
+        logger.info(f"Form data: {request.POST}")
         if form.is_valid():
             project = form.save(commit=False)
             project.company = company
             project.save()
 
-            # Create initial features
-            feature_names = ['Login System (Authn/Authz systems)', 'Admin Panel']
-            for name in feature_names:
-                Feature.objects.create(name=name, project=project)
-            project.generate_industry_specific_features()
+            # Create features based on form data
+            required_features = form.cleaned_data['required_features']
+            optional_features = form.cleaned_data['optional_features']
+            for feature_name in required_features + optional_features:
+                complexity = form.cleaned_data[f'{feature_name}_complexity']
+                logger.info(f"Creating feature {feature_name} with complexity {complexity}")
+                Feature.objects.create(
+                    name=feature_name,
+                    project=project,
+                    complexity=complexity,
+                    is_required=feature_name in required_features
+                )
             
+            project.deadline_type = form.cleaned_data['deadline_type']
+            project.save()
+
             return redirect('game_loop')
+        else:
+            logger.error(f"Form errors: {form.errors}")
         
         return render(request, 'game/create_project.html', {'company': company, 'form': form})
 
@@ -71,11 +87,6 @@ class ManageProjectView(View):
         if action == 'add_feature':
             feature_name = request.POST.get('feature_name')
             Feature.objects.create(name=feature_name, project=project)
-        elif action == 'fix_bug':
-            bug_id = request.POST.get('bug_id')
-            bug = get_object_or_404(Bug, id=bug_id, project=project)
-            bug.state = 'FIXED'
-            bug.save()
 
         return redirect('manage_project', project_id=project_id)
 

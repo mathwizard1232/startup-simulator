@@ -183,12 +183,9 @@ class GameLoopView(View):
         employees = project.employees.all()
         features = project.features.filter(state__in=['NOT_STARTED', 'IN_PROGRESS', 'TESTING'])
 
-        # Don't get stuck if assigned employees but no features to work on
         if not features:
-            # TODO: still could have employees work on detecting / fixing bugs
             return
-        
-        # Determine effective skill for each feature
+
         feature_speed = {}
         feature_accuracy = {}
         feature_debugging = {}
@@ -196,7 +193,8 @@ class GameLoopView(View):
         feature_teamwork = {}
         feature_traits = {}
         remaining_employees = list(employees)
-        
+        # Apply deadline effects
+        deadline_modifier = self.get_deadline_modifier(project.deadline_type)
         # Assign an initial employee to each feature, if there are enough employees
         for feature in features:
             if not remaining_employees:
@@ -206,7 +204,7 @@ class GameLoopView(View):
             feature_speed[feature] = employee.coding_speed
             feature_accuracy[feature] = employee.coding_accuracy
             feature_debugging[feature] = employee.debugging
-            feature_teamwork[feature] = employee.teamwork
+            feature_teamwork[feature] = employee.teamwork * deadline_modifier['teamwork']
             # For now we'll just use the first employee's productivity for the feature
             # TODO: actually calculate feature productivity based on team skills
             feature_productivity[feature] = employee.productivity
@@ -224,7 +222,7 @@ class GameLoopView(View):
                 additional_accuracy = new_employee.coding_accuracy
                 additional_debugging = new_employee.debugging
                 # Team's teamwork skill is the highest individual skill
-                teamwork = max(feature_teamwork[feature], new_employee.teamwork)
+                teamwork = max(feature_teamwork[feature], new_employee.teamwork * deadline_modifier['teamwork'])
                 # Speed is the hardest to increase with more people
                 # Perfect teamwork allows 25% increase at most
                 speed_factor = Decimal(0.25) * Decimal(teamwork) / Decimal(10)
@@ -235,38 +233,33 @@ class GameLoopView(View):
                 feature_speed[feature] = max(16, current_speed + speed_factor * additional_speed)
                 feature_accuracy[feature] = max(16, current_accuracy + accuracy_factor * additional_accuracy)
                 feature_debugging[feature] = max(16, current_debugging + debugging_factor * additional_debugging)
+                feature_teamwork[feature] = teamwork
                 feature_traits[feature] = feature_traits[feature].append(new_employee.personality_traits)
-        
+
         total_progress = 0
         total_bugs = 0
         for feature, speed_skill in feature_speed.items():
             if 'meme_lord' in feature_traits[feature]:
                 feature_productivity[feature] += 10
-            # Always some chance not to make progress
-            logger.info(f"Feature {feature.name} has speed skill {speed_skill} and productivity {feature_productivity[feature]}")
-            progress_chance = min(speed_skill * 7.5 * feature_productivity[feature] / 100, 95)
-            # Always some chance to produce a bug
-            bug_chance = max(100 - feature_accuracy[feature] * 7.5, 5)
-            debugging_chance = min(feature_debugging[feature] * 7.5, 95)
-            if 'perfectionist' in feature_traits[feature]:
-                # Subtract 10% from bug chance if there's a perfectionist on the feature
-                bug_chance = max(bug_chance - 10, 5)
-                # But less likely to make progress
-                progress_chance *= 0.85
-            if 'rubber_duck_whisperer' in feature_traits[feature]:
-                debugging_chance += 15
-            if 'stack_overflow_junkie' in feature_traits[feature]:
-                # 50% chance to solve bugs instantly
-                # 10% chance to introduce new bugs
-                if random.randint(1, 100) <= 50:
-                    bugs = fix_detected_bugs(feature.project, 100)
-                elif random.randint(1, 100) <= 20:
-                    # Because only a 50% chance to evaluate above, there's a 10% chance overall
-                    generate_random_bug(feature.project, feature, 100)
-            progress, bugs = self.process_feature(feature=feature, project=project, progress_chance=progress_chance, bug_chance=bug_chance, debugging_chance=debugging_chance)
+            # Apply deadline modifiers
+            adjusted_speed = speed_skill * deadline_modifier['speed']
+            adjusted_accuracy = feature_accuracy[feature] * deadline_modifier['accuracy']
+            adjusted_debugging = feature_debugging[feature] * deadline_modifier['debugging']
+            
+
+            # Calculate progress and bug chances (existing code with adjusted values)
+            progress_chance = min(adjusted_speed * 7.5 * feature_productivity[feature] / 100, 95)
+            bug_chance = max(100 - adjusted_accuracy * 7.5, 5)
+            debugging_chance = min(adjusted_debugging * 7.5, 95)
+
+            # Process feature (existing code)
+            progress, bugs = self.process_feature(feature=feature, project=project, 
+                                                  progress_chance=progress_chance, 
+                                                  bug_chance=bug_chance, 
+                                                  debugging_chance=debugging_chance)
             total_progress += progress
             total_bugs += bugs
-        
+
         # Calculate project success based on progress and bugs
         project_success = total_progress / len(features) - (total_bugs * 0.1)
         
@@ -275,9 +268,6 @@ class GameLoopView(View):
             updates = update_employee_perceptions(employee, project_success, total_bugs, len(employees))
             if updates:
                 messages.info(self.request, f"{employee.name}'s perceived {', '.join(updates)} has been updated.")
-
-        # TODO: updates if the project is completed?
-        # Currently this is a computed property, so result not stored.
 
     def process_feature(self, feature, project, progress_chance, bug_chance, debugging_chance):
         logger.info(f"Processing feature {feature.name} with state {feature.state} and {progress_chance} progress chance, {bug_chance} bug chance, and {debugging_chance} debugging chance")
@@ -291,6 +281,31 @@ class GameLoopView(View):
         feature.state = 'IN_PROGRESS'
         generate_random_bug(project, feature, bug_chance)
         feature.save()
+    def get_deadline_modifier(self, deadline_type):
+        if deadline_type == 'AGGRESSIVE':
+            logger.info("Aggressive deadline modifier")
+            return {
+                'speed': 1.2,
+                'accuracy': 0.8,
+                'debugging': 0.9,
+                'teamwork': 0.9
+            }
+        elif deadline_type == 'CAUTIOUS':
+            logger.info("Cautious deadline modifier")
+            return {
+                'speed': 0.8,
+                'accuracy': 1.2,
+                'debugging': 1.2,
+                'teamwork': 1.2
+            }
+        else:  # STANDARD
+            logger.info("Standard deadline modifier")
+            return {
+                'speed': 1.0,
+                'accuracy': 1.0,
+                'debugging': 1.0,
+                'teamwork': 1.0
+            }
 
 class EndGameView(View):
     def get(self, request):

@@ -1,11 +1,27 @@
 from .company import Company
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+
+PROJECT_TYPES = [
+    ('FINTECH', 'Fintech'),
+    ('GAME_DEV', 'Game Development'),
+]
+
+DEADLINE_TYPES = [
+    ('standard', 'Standard'),
+    ('aggressive', 'Aggressive'),
+    ('cautious', 'Cautious'),
+]
 
 class Project(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='projects')
     complexity = models.IntegerField(default=1)
+    project_type = models.CharField(max_length=20, choices=PROJECT_TYPES)
+    deadline_type = models.CharField(max_length=20, choices=DEADLINE_TYPES, default='standard')
+    deadline = models.DateTimeField(null=True, blank=True)
 
     @property
     def state(self):
@@ -39,3 +55,28 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+    def set_deadline(self):
+        if self.deadline_type == 'standard':
+            self.deadline = timezone.now() + timedelta(days=30)
+        elif self.deadline_type == 'aggressive':
+            self.deadline = timezone.now() + timedelta(days=20)
+        elif self.deadline_type == 'cautious':
+            self.deadline = timezone.now() + timedelta(days=45)
+        self.save()
+
+    def is_past_deadline(self):
+        return timezone.now() > self.deadline if self.deadline else False
+
+    def time_pressure(self):
+        if not self.deadline:
+            return 0
+        time_left = (self.deadline - timezone.now()).days
+        if time_left <= 0:
+            return 1
+        elif time_left <= 7:
+            return 0.8
+        elif time_left <= 14:
+            return 0.5
+        else:
+            return 0.2
