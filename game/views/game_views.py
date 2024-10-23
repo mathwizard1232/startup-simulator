@@ -6,13 +6,11 @@ from ..models.bug import Bug
 import json
 from decimal import Decimal
 import random
-from ..utils import generate_random_bug, progress_feature, fix_detected_bugs
 from ..forms.start_game_form import StartGameForm
-from game.utils.skill_utils import update_employee_perceptions
-from django.contrib import messages
 import logging
 from ..models.hiringprocess import HiringProcess
 from ..utils.employee_utils import create_employee
+from ..utils.progress_utils import process_project
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +152,7 @@ class GameLoopView(View):
         """
         for project in company.projects.all():
             if project.employees.exists():
-                self.process_project(project)
+                process_project(self.request, project)
 
     def generate_revenue(self, company):
         """
@@ -179,133 +177,6 @@ class GameLoopView(View):
         company.revenue_history = json.dumps(revenue_history)
         company.save()
 
-    def process_project(self, project):
-        employees = project.employees.all()
-        features = project.features.filter(state__in=['NOT_STARTED', 'IN_PROGRESS', 'TESTING'])
-
-        if not features:
-            return
-
-        feature_speed = {}
-        feature_accuracy = {}
-        feature_debugging = {}
-        feature_productivity = {}
-        feature_teamwork = {}
-        feature_traits = {}
-        remaining_employees = list(employees)
-        # Apply deadline effects
-        deadline_modifier = self.get_deadline_modifier(project.deadline_type)
-        # Assign an initial employee to each feature, if there are enough employees
-        for feature in features:
-            if not remaining_employees:
-                break
-            employee = remaining_employees.pop(0)
-            logger.info(f"Assigning employee {employee.name} with {employee.personality_traits} and {employee.coding_speed}, {employee.coding_accuracy}, {employee.debugging}, {employee.teamwork} to feature {feature.name}")
-            feature_speed[feature] = employee.coding_speed
-            feature_accuracy[feature] = employee.coding_accuracy
-            feature_debugging[feature] = employee.debugging
-            feature_teamwork[feature] = employee.teamwork * deadline_modifier['teamwork']
-            # For now we'll just use the first employee's productivity for the feature
-            # TODO: actually calculate feature productivity based on team skills
-            feature_productivity[feature] = employee.productivity
-            feature_traits[feature] = employee.personality_traits
-        # Distribute remaining employees
-        while remaining_employees:
-            for feature in feature_speed:
-                if not remaining_employees:
-                    break
-                current_speed = feature_speed[feature]
-                current_accuracy = feature_accuracy[feature]
-                current_debugging = feature_debugging[feature]
-                new_employee = remaining_employees.pop(0)
-                additional_speed = new_employee.coding_speed
-                additional_accuracy = new_employee.coding_accuracy
-                additional_debugging = new_employee.debugging
-                # Team's teamwork skill is the highest individual skill
-                teamwork = max(feature_teamwork[feature], new_employee.teamwork * deadline_modifier['teamwork'])
-                # Speed is the hardest to increase with more people
-                # Perfect teamwork allows 25% increase at most
-                speed_factor = Decimal(0.25) * Decimal(teamwork) / Decimal(10)
-                # Accuracy is easier to increase with more people
-                accuracy_factor = Decimal(0.5) * Decimal(teamwork) / Decimal(10)
-                debugging_factor = accuracy_factor
-                # Cap at 16 skill level - higher than individual but still imperfect
-                feature_speed[feature] = max(16, current_speed + speed_factor * additional_speed)
-                feature_accuracy[feature] = max(16, current_accuracy + accuracy_factor * additional_accuracy)
-                feature_debugging[feature] = max(16, current_debugging + debugging_factor * additional_debugging)
-                feature_teamwork[feature] = teamwork
-                feature_traits[feature] = feature_traits[feature].append(new_employee.personality_traits)
-
-        total_progress = 0
-        total_bugs = 0
-        for feature, speed_skill in feature_speed.items():
-            if 'meme_lord' in feature_traits[feature]:
-                feature_productivity[feature] += 10
-            # Apply deadline modifiers
-            adjusted_speed = speed_skill * deadline_modifier['speed']
-            adjusted_accuracy = feature_accuracy[feature] * deadline_modifier['accuracy']
-            adjusted_debugging = feature_debugging[feature] * deadline_modifier['debugging']
-            
-
-            # Calculate progress and bug chances (existing code with adjusted values)
-            progress_chance = min(adjusted_speed * 7.5 * feature_productivity[feature] / 100, 95)
-            bug_chance = max(100 - adjusted_accuracy * 7.5, 5)
-            debugging_chance = min(adjusted_debugging * 7.5, 95)
-
-            # Process feature (existing code)
-            progress, bugs = self.process_feature(feature=feature, project=project, 
-                                                  progress_chance=progress_chance, 
-                                                  bug_chance=bug_chance, 
-                                                  debugging_chance=debugging_chance)
-            total_progress += progress
-            total_bugs += bugs
-
-        # Calculate project success based on progress and bugs
-        project_success = total_progress / len(features) - (total_bugs * 0.1)
-        
-        # Update employee perceptions
-        for employee in employees:
-            updates = update_employee_perceptions(employee, project_success, total_bugs, len(employees))
-            if updates:
-                messages.info(self.request, f"{employee.name}'s perceived {', '.join(updates)} has been updated.")
-
-    def process_feature(self, feature, project, progress_chance, bug_chance, debugging_chance):
-        logger.info(f"Processing feature {feature.name} with state {feature.state} and {progress_chance} progress chance, {bug_chance} bug chance, and {debugging_chance} debugging chance")
-        if feature.state == 'NOT_STARTED':
-            self.start_feature(feature, project, bug_chance=bug_chance)
-            return 1, 0  # We can always start and no bugs are detected
-        else:
-            return progress_feature(feature=feature, progress_chance=progress_chance, bug_chance=bug_chance, debugging_chance=debugging_chance)
-
-    def start_feature(self, feature, project, bug_chance):
-        feature.state = 'IN_PROGRESS'
-        generate_random_bug(project, feature, bug_chance)
-        feature.save()
-    def get_deadline_modifier(self, deadline_type):
-        if deadline_type == 'AGGRESSIVE':
-            logger.info("Aggressive deadline modifier")
-            return {
-                'speed': 1.2,
-                'accuracy': 0.8,
-                'debugging': 0.9,
-                'teamwork': 0.9
-            }
-        elif deadline_type == 'CAUTIOUS':
-            logger.info("Cautious deadline modifier")
-            return {
-                'speed': 0.8,
-                'accuracy': 1.2,
-                'debugging': 1.2,
-                'teamwork': 1.2
-            }
-        else:  # STANDARD
-            logger.info("Standard deadline modifier")
-            return {
-                'speed': 1.0,
-                'accuracy': 1.0,
-                'debugging': 1.0,
-                'teamwork': 1.0
-            }
 
 class EndGameView(View):
     def get(self, request):

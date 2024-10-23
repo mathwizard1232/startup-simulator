@@ -28,7 +28,6 @@ class DecisionMakingTestCase(TestCase):
     def test_decision_making(self):
         view = DecisionMakingView()
         
-        # Test different combinations of decisions
         decisions = [
             ('daily', 'mandatory'),
             ('weekly', 'optional'),
@@ -42,17 +41,12 @@ class DecisionMakingTestCase(TestCase):
             with self.subTest(status_report=status_report, overtime=overtime):
                 view.apply_decision_effects(self.company, status_report, overtime)
                 
-                # Refresh employee from database
-                self.employee.refresh_from_db()
+                # Refresh company from database
+                self.company.refresh_from_db()
                 
-                # Check that morale and productivity are within reasonable ranges
-                # Productivity shouldn't drop below 10 from these changes
-                self.assertTrue(1 <= self.employee.morale <= 100)
-                self.assertTrue(10 <= self.employee.productivity <= 100)
-                
-                # Check that productivity is calculated correctly
-                expected_productivity = self.employee.calculate_productivity()
-                self.assertAlmostEqual(self.employee.productivity, expected_productivity, delta=1)
+                # Check that company decisions are updated correctly
+                self.assertEqual(self.company.status_report_frequency, status_report)
+                self.assertEqual(self.company.overtime_policy, overtime)
 
     def test_decision_making_view(self):
         url = reverse('decision_making')
@@ -72,6 +66,6 @@ class DecisionMakingTestCase(TestCase):
         # Refresh employee from database
         self.employee.refresh_from_db()
         
-        # Check that employee attributes have been updated
-        self.assertNotEqual(self.employee.morale, 75)
-        self.assertNotEqual(self.employee.productivity, 75)
+        # Check that employee attributes have not been updated (applied in game loop)
+        self.assertEqual(self.employee.morale, 75)
+        self.assertEqual(self.employee.productivity, 75)
